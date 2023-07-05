@@ -82,6 +82,9 @@ fn get_message(command: &str, message_parts: Vec<&str>) -> Option<String> {
         "!tridentodds" => {
             Some(commands::tridentodds(message_parts))
         },
+        "!rolldrowned" => {
+            Some(commands::rolldrowned(message_parts))
+        },
         _ => { None }
     }
 }

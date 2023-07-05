@@ -90,12 +90,12 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
     
     let drops = message_parts[1].parse::<u128>();
     let kills = message_parts[2].parse::<u128>();
-    let looting_level = message_parts[3].parse::<f64>();
+    let looting_level = message_parts[3].parse::<u32>();
 
     match (kills, drops, looting_level) {
         (Ok(kills), Ok(drops), Ok(looting_level)) => {
-            let p: f64 = looting_level / 100.0 + 0.025; 
-            if p < 0.0 || p > 1.0 || drops > kills || looting_level < 0.0 || looting_level.fract() != 0.0 {
+            let p: f64 = (looting_level as f64) / 100.0 + 0.025; 
+            if p < 0.0 || p > 1.0 || drops > kills {
                 return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
             }
 
@@ -158,7 +158,7 @@ pub fn tridentodds(message_parts: Vec<&str>) -> String {
                 )
             } else {
                 format!(
-                    "Odds of getting {} durability trident: ~{:.8}%; Odds of getting {} or more durability trident: ~{:.8}%.", 
+                    "Odds of getting exactly {} durability trident: ~{:.8}%; Odds of getting {} or more durability trident: ~{:.8}%.", 
                     durability, 
                     exact_durability_odds * 100.0, 
                     durability, 
@@ -172,5 +172,67 @@ pub fn tridentodds(message_parts: Vec<&str>) -> String {
         Err(_) => {
             return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
         },
+    }
+}
+
+pub fn rolldrowned(message_parts: Vec<&str>) -> String {
+    if message_parts.len() <= 2 {
+        return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
+    }
+
+    let mut rng: StdRng = SeedableRng::from_entropy();
+
+    let kills = message_parts[1].parse::<u32>();
+    let looting_level = message_parts[2].parse::<u32>();
+
+    match (kills, looting_level) {
+        (Ok(kills), Ok(looting_level)) => {
+            if looting_level > 89 {
+                return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
+            }
+
+            let mut rotten_flesh: u32 = 0;
+            let mut tridents: u32 = 0;
+            let mut shells: u32 = 0;
+            let mut fishing_rods: u32 = 0;
+            let mut copper_ingots: u32 = 0;
+
+            for _ in 0..kills {
+                rotten_flesh += rng.gen_range(0..(2 + looting_level));
+                copper_ingots += if rng.gen_range(1..=100) <= (11 + looting_level) {
+                    1
+                } else {
+                    0
+                };
+
+                if rng.gen_range(1..=1000) <= 85 + looting_level * 10  {
+                    if rng.gen_range(1..=10) == 10 {
+                        if rng.gen_range(0..16) < 10 {
+                            tridents += 1;
+                        } else {
+                            fishing_rods += 1;
+                        }
+                    }
+                }
+                    
+                if rng.gen_range(1..=100) <= 3 {
+                    shells += 1;
+                }
+            }
+
+            return format!(
+                "You got {} rotten flesh, {} copper ingots, {} nautilus shells, {} tridents, {} fishing rods from killing {} drowned with looting {}.",
+                rotten_flesh,
+                copper_ingots,
+                shells,
+                tridents,
+                fishing_rods,
+                kills,
+                looting_level
+            );
+        },
+        _ => {
+            return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
+        }
     }
 }
