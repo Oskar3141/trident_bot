@@ -76,9 +76,12 @@ fn get_message(command: &str, message_parts: Vec<&str>) -> Option<String> {
         "!thunderodds" => {
             Some(commands::thunderodds(message_parts))
         },
-        // "!skullodds" => {
-        //     Some(commands::skullrates(message_parts))
-        // },
+        "!skullodds" => {
+            Some(commands::skullrates(message_parts))
+        },
+        "!tridentodds" => {
+            Some(commands::tridentodds(message_parts))
+        },
         _ => { None }
     }
 }

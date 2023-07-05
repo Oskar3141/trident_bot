@@ -85,7 +85,7 @@ pub fn thunderodds(message_parts: Vec<&str>) -> String {
 
 pub fn skullrates(message_parts: Vec<&str>) -> String {
     if message_parts.len() <= 2 {
-        return "Error: Invalid syntax; !skullodss {drops} {kills} {looting level}".to_owned();
+        return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
     }
     
     let drops = message_parts[1].parse::<u128>();
@@ -95,21 +95,82 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
     match (kills, drops, looting_level) {
         (Ok(kills), Ok(drops), Ok(looting_level)) => {
             let p: f64 = looting_level / 100.0 + 0.025; 
-            if p < 0.0 || p > 1.0 || drops > kills || looting_level < 0.0 {
+            if p < 0.0 || p > 1.0 || drops > kills || looting_level < 0.0 || looting_level.fract() != 0.0 {
                 return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
             }
 
             // println!("{}",p);
             
-            let mut probability: f64 = 0.0;
+            let mut exact_or_more_drops_probability: f64 = 0.0;
             for n in drops..=kills { 
-                probability += bernoullis_scheme(kills, n, p);
+                exact_or_more_drops_probability += bernoullis_scheme(kills, n, p);
             }
 
-            return format!("Odds of getting {} or more skulls from {} wither skeletons with looting {}: ~{:.10}%", drops, kills, looting_level, probability * 100.0);
+            let exact_drops_probability: f64 = bernoullis_scheme(kills, drops, p);
+
+            return format!(
+                "Wither skeleton kills: {}; Looting level: {}; Odds of getting exactly {} skull drops: ~{:.8}%; Odds of getting {} or more skull drops: ~{:.8}%.",
+                kills,
+                looting_level,
+                drops,
+                exact_drops_probability * 100.0,
+                drops,
+                exact_or_more_drops_probability * 100.0
+            );
         },
         _ => {
             return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
         }
     };
+}
+
+pub fn tridentodds(message_parts: Vec<&str>) -> String {
+    if message_parts.len() <= 1 {
+        return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
+    }
+
+    let durability = message_parts[1].parse::<u32>();
+
+    match durability {
+        Ok(durability) => {
+            if durability > 250 {
+                return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
+            }   
+
+            let mut exact_durability_odds: f64 = 0.0;
+            let mut exact_or_more_durability_odds: f64 = 0.0;
+
+            for k in durability..=250 {
+                for n in k..=250 {
+                    if k == durability {
+                        exact_durability_odds += 1.0 / (251.0 * (n + 1) as f64);
+                    }
+
+                    exact_or_more_durability_odds += 1.0 / (251.0 * (n + 1) as f64);
+                }
+            }
+            
+            let message: String = if durability == 250 {
+                format!(
+                    "Odds of getting {} durability trident: {:.8}%.", 
+                    durability, 
+                    exact_durability_odds * 100.0, 
+                )
+            } else {
+                format!(
+                    "Odds of getting {} durability trident: ~{:.8}%; Odds of getting {} or more durability trident: ~{:.8}%.", 
+                    durability, 
+                    exact_durability_odds * 100.0, 
+                    durability, 
+                    exact_or_more_durability_odds * 100.0
+                )
+            };
+
+                
+            return message;
+        },
+        Err(_) => {
+            return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
+        },
+    }
 }
