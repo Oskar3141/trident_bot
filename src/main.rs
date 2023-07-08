@@ -85,6 +85,9 @@ fn get_message(command: &str, message_parts: Vec<&str>) -> Option<String> {
         "!rolldrowned" => {
             Some(commands::rolldrowned(message_parts))
         },
+        "Fishinge" => {
+            Some(commands::fishinge())
+        },
         _ => { None }
     }
 }

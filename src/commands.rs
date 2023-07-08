@@ -19,7 +19,7 @@ pub fn combo(message_parts: Vec<&str>, get_message: &dyn Fn(&str, Vec<&str>) -> 
 }
 
 pub fn nomic() -> String {
-    "no mic.".to_owned()
+    "No Microphone.".to_owned()
 }
 
 pub fn rolltrident() -> String {
@@ -75,7 +75,7 @@ pub fn thunderodds(message_parts: Vec<&str>) -> String {
     match arg {
         Ok(mins) => {
             let odds: f64 = thunder::get_thunder_odds((mins * 1200.0) as u64);
-            return format!("Odds of thunder in first {} minutes: ~{:.4}%", mins, odds * 100.0);
+            return format!("Odds of thunder in first {} minutes: ~{:.4}%", mins, odds * 100.0).replace(".", ",");
         },
         Err(_) => {
             return "Error: Invalid syntax; !thunderodds {time in minutes}".to_owned();
@@ -95,7 +95,7 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
     match (kills, drops, looting_level) {
         (Ok(kills), Ok(drops), Ok(looting_level)) => {
             let p: f64 = (looting_level as f64) / 100.0 + 0.025; 
-            if p < 0.0 || p > 1.0 || drops > kills {
+            if p < 0.0 || p > 1.0 || drops > kills || looting_level > 3 {
                 return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
             }
 
@@ -109,14 +109,14 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
             let exact_drops_probability: f64 = bernoullis_scheme(kills, drops, p);
 
             return format!(
-                "Wither skeleton kills: {}; Looting level: {}; Odds of getting exactly {} skull drops: ~{:.8}%; Odds of getting {} or more skull drops: ~{:.8}%.",
+                "Wither skeleton kills: {}; Looting level: {}; Odds of getting exactly {} skull drops: ~{:.8}%; Odds of getting {} or more skull drops: ~{:.8}%",
                 kills,
                 looting_level,
                 drops,
                 exact_drops_probability * 100.0,
                 drops,
                 exact_or_more_drops_probability * 100.0
-            );
+            ).replace(".", ",");
         },
         _ => {
             return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
@@ -158,12 +158,12 @@ pub fn tridentodds(message_parts: Vec<&str>) -> String {
                 )
             } else {
                 format!(
-                    "Odds of getting exactly {} durability trident: ~{:.8}%; Odds of getting {} or more durability trident: ~{:.8}%.", 
+                    "Odds of getting exactly {} durability trident: ~{:.8}%; Odds of getting {} or more durability trident: ~{:.8}%", 
                     durability, 
                     exact_durability_odds * 100.0, 
                     durability, 
                     exact_or_more_durability_odds * 100.0
-                )
+                ).replace(".", ",")
             };
 
                 
@@ -187,7 +187,7 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> String {
 
     match (kills, looting_level) {
         (Ok(kills), Ok(looting_level)) => {
-            if looting_level > 89 {
+            if looting_level > 3 {
                 return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
             }
 
@@ -221,7 +221,7 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> String {
             }
 
             return format!(
-                "You got {} rotten flesh, {} copper ingots, {} nautilus shells, {} tridents, {} fishing rods from killing {} drowned with looting {}.",
+                "You got {} Rotten Flesh, {} Copper Ingots, {} Nautilus Shells, {} Tridents, {} Fishing Rods from killing {} drowned with looting {}.",
                 rotten_flesh,
                 copper_ingots,
                 shells,
@@ -236,3 +236,77 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> String {
         }
     }
 }
+
+pub fn fishinge() -> String {
+    let mut rng: StdRng = SeedableRng::from_entropy();
+
+    let n: u32 = rng.gen_range(1..=20);
+
+    let message: String = "You caught ".to_owned() + if n <= 17 {
+        let k: u32 = rng.gen_range(1..=100);
+
+        if k <= 60 {
+            "a Raw Cod!"
+        } else if k > 60 && k <= 85 {
+            "a Raw Salmon!"
+        } else if k > 85 && k <= 87 {
+            "a Tropical Fish!"
+        } else {
+            "a Pufferfish!"
+        }
+    } else if n == 18 {
+        match rng.gen_range(1..=6) {
+            1 => {
+                "an Enchanted Bow!"
+            },
+            2 => {
+                "an Enchanted Book!"
+            },
+            3 => {
+                "an Enchanted Fishing Rod!"
+            },
+            4 => {
+                "a Name Tag!"
+            },
+            5 => {
+                "a Nautilus Shell!"
+            },
+            6 => {
+                "a Saddle"
+            },
+            _ => {
+                "you should never get this."
+            }
+        }
+    } else {
+        let k: u32 = rng.gen_range(1..=100);
+
+        if k <= 17 {
+            "a Lily Pad!"
+        } else if k > 17 && k <= 27 {
+            "a Bowl!"
+        } else if k > 27 && k <= 29 {
+            "a Fishing Rod!"
+        } else if k > 29 && k <= 39 {
+            "a Leather!"
+        } else if k > 39 && k <= 49 {
+            "an Leather Boots!"
+        } else if k > 49 && k <= 59 {
+            "an Rotten Flesh!"
+        } else if k > 59 && k <= 64 {
+            "a Stick!"
+        } else if k > 64 && k <= 69 {
+            "a String!"
+        } else if k > 69 && k <= 79 {
+            "a Water Bottle!"
+        } else if k > 79 && k <= 89 {
+            "a Bone"
+        } else if k == 90  {
+            "10 Ink Sac!"
+        } else  {
+            "a Tripwire Hook!"
+        }
+    };
+
+    message
+} 
