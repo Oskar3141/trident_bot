@@ -3,12 +3,12 @@ use rand::{Rng, SeedableRng, rngs::StdRng};
 const ONE_MINUTE_IN_TICKS: u64 = 1200;
 
 const MIN_TIME_BETWEEN_CYCLES: u64 = ONE_MINUTE_IN_TICKS * 10;
-const MAX_TIME_BETWEEN_CYCLES: u64 = ONE_MINUTE_IN_TICKS * 150;
+const MAX_TIME_BETWEEN_CYCLES: u64 = ONE_MINUTE_IN_TICKS * 150 - 1;
 
 const MIN_RAIN_CYCLE_DURATION: u64 = ONE_MINUTE_IN_TICKS * 10;
-const MAX_RAIN_CYCLE_DURATION: u64 = ONE_MINUTE_IN_TICKS * 20;
+const MAX_RAIN_CYCLE_DURATION: u64 = ONE_MINUTE_IN_TICKS * 20 - 1;
 const MIN_THUNDER_CYCLE_DURATION: u64 = ONE_MINUTE_IN_TICKS * 3;
-const MAX_THUNDER_CYCLE_DURATION: u64 = ONE_MINUTE_IN_TICKS * 13;
+const MAX_THUNDER_CYCLE_DURATION: u64 = ONE_MINUTE_IN_TICKS * 13 - 1;
 
 pub fn get_thunder_duration(
     rain_cycle_start: u64,
@@ -19,14 +19,32 @@ pub fn get_thunder_duration(
     let rain_cycle_end: u64 = rain_cycle_start + rain_cycle_duration;
     let thunder_cycle_end: u64 = thunder_cycle_start + thunder_cycle_duration;
 
-    if rain_cycle_start >= thunder_cycle_start && rain_cycle_end <= thunder_cycle_end {
-        return rain_cycle_end - rain_cycle_start;
-    } else if thunder_cycle_start >= rain_cycle_start && thunder_cycle_end <= rain_cycle_end {
-        return thunder_cycle_end - thunder_cycle_start;
-    } else if thunder_cycle_start <= rain_cycle_end && thunder_cycle_end >= rain_cycle_end {
+    if rain_cycle_start > thunder_cycle_end || thunder_cycle_start > rain_cycle_end {
+        return 0;
+    }
+
+    // if rain_cycle_start >= thunder_cycle_start && rain_cycle_end <= thunder_cycle_end {
+    //     return rain_cycle_end - rain_cycle_start;
+    // } else if thunder_cycle_start >= rain_cycle_start && thunder_cycle_end <= rain_cycle_end {
+    //     return thunder_cycle_end - thunder_cycle_start;
+    // } else if thunder_cycle_start <= rain_cycle_end && thunder_cycle_end >= rain_cycle_end {
+    //     return rain_cycle_end - thunder_cycle_start;
+    // } else if rain_cycle_start <= thunder_cycle_end && rain_cycle_end >= thunder_cycle_end {
+    //     return thunder_cycle_end - rain_cycle_start;
+    // }
+
+    if rain_cycle_start < thunder_cycle_start && thunder_cycle_end < rain_cycle_end {
+        return thunder_cycle_duration;
+    } else if thunder_cycle_start < rain_cycle_start && rain_cycle_end < thunder_cycle_end {
+        return rain_cycle_duration;
+    } else if thunder_cycle_start > rain_cycle_start && thunder_cycle_start < rain_cycle_end {
         return rain_cycle_end - thunder_cycle_start;
-    } else if rain_cycle_start <= thunder_cycle_end && rain_cycle_end >= thunder_cycle_end {
+    } else if rain_cycle_start > thunder_cycle_start && rain_cycle_start < thunder_cycle_end {
         return thunder_cycle_end - rain_cycle_start;
+    } else if thunder_cycle_end > rain_cycle_start && thunder_cycle_end < rain_cycle_end {
+        return thunder_cycle_end - rain_cycle_start;
+    } else if rain_cycle_end > thunder_cycle_start && rain_cycle_end < thunder_cycle_end {
+        return rain_cycle_end - thunder_cycle_start;
     }
 
     0
@@ -45,6 +63,7 @@ pub fn get_thunder_start_time(
 
 pub fn get_thunder_odds(time: u64) -> f64 {
     let mut rng: StdRng = SeedableRng::from_entropy();
+
     let loops: u64 = 1_000_000;
     let mut succes: u64 = 0;
 
@@ -55,36 +74,60 @@ pub fn get_thunder_odds(time: u64) -> f64 {
         let mut thunder_cycle_duration: u64 = rng.gen_range(MIN_THUNDER_CYCLE_DURATION..=MAX_THUNDER_CYCLE_DURATION);
         let mut start_time: u64;
 
-        while get_thunder_duration(
-            rain_cycle_start,
-            rain_cycle_duration,
-            thunder_cycle_start,
-            thunder_cycle_duration
-        ) == 0 {
+        'thunder_loop: loop {
+            let duration: u64 = get_thunder_duration(
+                rain_cycle_start,
+                rain_cycle_duration,
+                thunder_cycle_start,
+                thunder_cycle_duration
+            );
+
+            start_time = get_thunder_start_time(rain_cycle_start, thunder_cycle_start);
+            if duration > 0 && start_time < time {
+                succes += 1;
+                break 'thunder_loop;
+            } else if thunder_cycle_start >= time || rain_cycle_start >= time {
+                break 'thunder_loop;
+            }
+
             if rain_cycle_start <= thunder_cycle_start {
                 let rain_cycle_end: u64 = rain_cycle_start + rain_cycle_duration;
                 
-                rain_cycle_start = rng.gen_range((rain_cycle_end + MIN_TIME_BETWEEN_CYCLES + 1)..=(rain_cycle_end + MAX_TIME_BETWEEN_CYCLES));
+                rain_cycle_start = rng.gen_range((rain_cycle_end + MIN_TIME_BETWEEN_CYCLES)..=(rain_cycle_end + MAX_TIME_BETWEEN_CYCLES - 1));
                 rain_cycle_duration = rng.gen_range(MIN_RAIN_CYCLE_DURATION..=MAX_RAIN_CYCLE_DURATION);
             } else {
                 let thunder_cycle_end: u64 = thunder_cycle_start + thunder_cycle_duration;
                 
-                thunder_cycle_start = rng.gen_range((thunder_cycle_end + MIN_TIME_BETWEEN_CYCLES + 1)..=(thunder_cycle_end + MAX_TIME_BETWEEN_CYCLES));
+                thunder_cycle_start = rng.gen_range((thunder_cycle_end + MIN_TIME_BETWEEN_CYCLES)..=(thunder_cycle_end + MAX_TIME_BETWEEN_CYCLES - 1));
                 thunder_cycle_duration = rng.gen_range(MIN_THUNDER_CYCLE_DURATION..=MAX_THUNDER_CYCLE_DURATION);
             }
-
-            start_time = get_thunder_start_time(rain_cycle_start, thunder_cycle_start);
-            if start_time > time {
-                continue;
-            }
         }
 
-        start_time = get_thunder_start_time(rain_cycle_start, thunder_cycle_start);
-        if start_time <= time {
-            succes += 1;
-        }
+        // while  == 0 {
+            // if rain_cycle_start <= thunder_cycle_start {
+            //     let rain_cycle_end: u64 = rain_cycle_start + rain_cycle_duration;
+                
+            //     rain_cycle_start = rng.gen_range((rain_cycle_end + MIN_TIME_BETWEEN_CYCLES + 1)..=(rain_cycle_end + MAX_TIME_BETWEEN_CYCLES));
+            //     rain_cycle_duration = rng.gen_range(MIN_RAIN_CYCLE_DURATION..=MAX_RAIN_CYCLE_DURATION);
+            // } else {
+            //     let thunder_cycle_end: u64 = thunder_cycle_start + thunder_cycle_duration;
+                
+            //     thunder_cycle_start = rng.gen_range((thunder_cycle_end + MIN_TIME_BETWEEN_CYCLES + 1)..=(thunder_cycle_end + MAX_TIME_BETWEEN_CYCLES));
+            //     thunder_cycle_duration = rng.gen_range(MIN_THUNDER_CYCLE_DURATION..=MAX_THUNDER_CYCLE_DURATION);
+            // }
+
+            // start_time = get_thunder_start_time(rain_cycle_start, thunder_cycle_start);
+            // if start_time > time {
+            //     continue;
+            // }
+        // }
+
+        // start_time = get_thunder_start_time(rain_cycle_start, thunder_cycle_start);
+        // if start_time <= time {
+        //     succes += 1;
+        // }
     }
-
+    
     succes as f64 / loops as f64
 }
 
@@ -104,12 +147,12 @@ pub fn get_first_thunder() -> (u64, u64) {
             if rain_cycle_start <= thunder_cycle_start {
                 let rain_cycle_end: u64 = rain_cycle_start + rain_cycle_duration;
                 
-                rain_cycle_start = rng.gen_range((rain_cycle_end + MIN_TIME_BETWEEN_CYCLES + 1)..=(rain_cycle_end + MAX_TIME_BETWEEN_CYCLES));
+                rain_cycle_start = rng.gen_range((rain_cycle_end + MIN_TIME_BETWEEN_CYCLES)..=(rain_cycle_end + MAX_TIME_BETWEEN_CYCLES - 1));
                 rain_cycle_duration = rng.gen_range(MIN_RAIN_CYCLE_DURATION..=MAX_RAIN_CYCLE_DURATION);
             } else {
                 let thunder_cycle_end: u64 = thunder_cycle_start + thunder_cycle_duration;
                 
-                thunder_cycle_start = rng.gen_range((thunder_cycle_end + MIN_TIME_BETWEEN_CYCLES + 1)..=(thunder_cycle_end + MAX_TIME_BETWEEN_CYCLES));
+                thunder_cycle_start = rng.gen_range((thunder_cycle_end + MIN_TIME_BETWEEN_CYCLES)..=(thunder_cycle_end + MAX_TIME_BETWEEN_CYCLES - 1));
                 thunder_cycle_duration = rng.gen_range(MIN_THUNDER_CYCLE_DURATION..=MAX_THUNDER_CYCLE_DURATION);
             }
         }
