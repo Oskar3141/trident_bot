@@ -95,6 +95,12 @@ pub async fn main() {
                                 "!song" => {
                                     Some(commands::song(spotify.clone()).await)
                                 },
+                                "!wr" => {
+                                    Some(commands::wr())
+                                },
+                                "!pb" => {
+                                    Some(commands::pb())
+                                },
                                 _ => { None }
                             }
                         } else {

@@ -351,3 +351,11 @@ pub async fn song(spotify: AuthCodeSpotify) -> Result<String, String> {
 
     Ok(message)
 }
+
+pub fn wr() -> Result<String, String> {
+    Ok("1.16 AASSG: 1:46 by Oxidiot.".to_owned())
+}
+
+pub fn pb() -> Result<String, String> {
+    Ok("1.16 AASSG: no pb.".to_owned())
+}
