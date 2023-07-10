@@ -1,73 +1,62 @@
 use rand::{Rng, rngs::StdRng, SeedableRng};
+use rspotify::model::{PlayableItem, AdditionalType};
+use rspotify::{prelude::*, AuthCodeSpotify};
 
 use crate::thunder;
 use crate::math::bernoullis_scheme;
 
-pub fn combo(message_parts: Vec<&str>, get_message: &dyn Fn(&str, Vec<&str>) -> Option<String>) -> String {
-    let mut message: String = String::new();
-
-    for (i, command) in message_parts.iter().enumerate() {
-        if command != &"!combo" {
-            match get_message(command, message_parts[i..message_parts.len()].into()) {
-                Some(val) => { message = format!("{} {}", message, val); }
-                None => {}
-            }
-        }
-    }
-
-    message
+pub fn nomic() -> Result<String, String> {
+    Ok("No Microphone.".to_owned())
 }
 
-pub fn nomic() -> String {
-    "No Microphone.".to_owned()
-}
-
-pub fn rolltrident() -> String {
+pub fn rolltrident() -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
     let n: i32 = rng.gen_range(0..=250);
     let durability: i32 = rng.gen_range(0..=n);
 
-    format!("Your trident has {} durability.", durability)
+    Ok(format!("Your trident has {} durability.", durability))
 }
 
-pub fn age() -> String {
+pub fn age() -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
     let age: i32 = rng.gen_range(0..=100);
     
-    format!("Oskar is {} years old.", age)
+    Ok(format!("Oskar is {} years old.", age))
 }
 
-pub fn rollseed() -> String {
+pub fn rollseed() -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
     let seed: i64 = rng.gen();
     
-    format!("Your seed: {}.", seed)
+    Ok(format!("Your seed: {}.", seed))
 }
 
-pub fn findseed() -> String {
+pub fn findseed() -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
     let v: Vec<i32> = vec!(0; 12);
     let rolls: Vec<i32> = v.iter().map(|n| (*n == rng.gen_range(0..10)) as i32).collect::<Vec<i32>>(); 
     let eyes: i32 = rolls.iter().sum::<i32>();
     
-    format!("Your seed is a {} eye.", eyes)
+    Ok(format!("Your seed is a {} eye.", eyes))
 }
 
-pub fn weather() -> String {
+pub fn weather() -> Result<String, String> {
     let (thunder_start, thunder_duration) = thunder::get_first_thunder();
     let formatted_start_time: String = thunder::format_start_time(thunder_start);
     let formatted_duration: String = thunder::format_duration(thunder_duration);
     
-    format!("First thunder will start at {} and will last {}.", formatted_start_time, formatted_duration)
+    Ok(format!("First thunder will start at {} and will last {}.", formatted_start_time, formatted_duration))
 }
 
-pub fn thunderodds(message_parts: Vec<&str>) -> String {
+pub fn thunderodds(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !thunderodds {time in minutes}".to_owned());
+
     if message_parts.len() <= 0 {   
-        return "Error: Invalid syntax; !thunderodds {time in minutes}".to_owned();
+        return error;
     }
 
     let arg = message_parts[1].parse::<f64>();
@@ -75,17 +64,19 @@ pub fn thunderodds(message_parts: Vec<&str>) -> String {
     match arg {
         Ok(mins) => {
             let odds: f64 = thunder::get_thunder_odds((mins * 1200.0) as u64);
-            return format!("Odds of thunder in first {} minutes: ~{:.4}%", mins, odds * 100.0).replace(".", ",");
+            return Ok(format!("Odds of thunder in first {} minutes: ~{:.4}%", mins, odds * 100.0).replace(".", ","));
         },
         Err(_) => {
-            return "Error: Invalid syntax; !thunderodds {time in minutes}".to_owned();
+            return error;
         }
     }
 }
 
-pub fn skullrates(message_parts: Vec<&str>) -> String {
+pub fn skullrates(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned());
+    
     if message_parts.len() <= 2 {
-        return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
+        return error;
     }
     
     let drops = message_parts[1].parse::<u128>();
@@ -96,7 +87,7 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
         (Ok(kills), Ok(drops), Ok(looting_level)) => {
             let p: f64 = (looting_level as f64) / 100.0 + 0.025; 
             if p < 0.0 || p > 1.0 || drops > kills || looting_level > 3 {
-                return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
+                return error;
             }
 
             // println!("{}",p);
@@ -108,7 +99,7 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
 
             let exact_drops_probability: f64 = bernoullis_scheme(kills, drops, p);
 
-            return format!(
+            return Ok(format!(
                 "Wither skeleton kills: {}; Looting level: {}; Odds of getting exactly {} skull drops: ~{:.8}%; Odds of getting {} or more skull drops: ~{:.8}%",
                 kills,
                 looting_level,
@@ -116,17 +107,19 @@ pub fn skullrates(message_parts: Vec<&str>) -> String {
                 exact_drops_probability * 100.0,
                 drops,
                 exact_or_more_drops_probability * 100.0
-            ).replace(".", ",");
+            ).replace(".", ","));
         },
         _ => {
-            return "Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned();
+            return error;
         }
     };
 }
 
-pub fn tridentodds(message_parts: Vec<&str>) -> String {
+pub fn tridentodds(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned());
+    
     if message_parts.len() <= 1 {
-        return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
+        return error;
     }
 
     let durability = message_parts[1].parse::<u32>();
@@ -134,7 +127,7 @@ pub fn tridentodds(message_parts: Vec<&str>) -> String {
     match durability {
         Ok(durability) => {
             if durability > 250 {
-                return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
+                return error;
             }   
 
             let mut exact_durability_odds: f64 = 0.0;
@@ -167,17 +160,19 @@ pub fn tridentodds(message_parts: Vec<&str>) -> String {
             };
 
                 
-            return message;
+            return Ok(message);
         },
         Err(_) => {
-            return "Error: Invalid syntax; !tridentodds {durability}".to_owned();
+            return error;
         },
     }
 }
 
-pub fn rolldrowned(message_parts: Vec<&str>) -> String {
+pub fn rolldrowned(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned());
+
     if message_parts.len() <= 2 {
-        return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
+        return error;
     }
 
     let mut rng: StdRng = SeedableRng::from_entropy();
@@ -188,7 +183,7 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> String {
     match (kills, looting_level) {
         (Ok(kills), Ok(looting_level)) => {
             if looting_level > 3 {
-                return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
+                return error;
             }
 
             let mut rotten_flesh: u32 = 0;
@@ -220,7 +215,7 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> String {
                 }
             }
 
-            return format!(
+            return Ok(format!(
                 "You got {} Rotten Flesh, {} Copper Ingots, {} Nautilus Shells, {} Tridents, {} Fishing Rods from killing {} drowned with looting {}.",
                 rotten_flesh,
                 copper_ingots,
@@ -229,15 +224,15 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> String {
                 fishing_rods,
                 kills,
                 looting_level
-            );
+            ));
         },
         _ => {
-            return "Error: Invalid syntax; !rolldrowned {kills} {looting level}".to_owned();
+            return error;
         }
     }
 }
 
-pub fn fishinge() -> String {
+pub fn fishinge() -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
     let n: u32 = rng.gen_range(1..=20);
@@ -272,7 +267,7 @@ pub fn fishinge() -> String {
                 "a Nautilus Shell!"
             },
             6 => {
-                "a Saddle"
+                "a Saddle!"
             },
             _ => {
                 "you should never get this."
@@ -308,5 +303,51 @@ pub fn fishinge() -> String {
         }
     };
 
-    message
+    Ok(message)
 } 
+
+pub async fn song(spotify: AuthCodeSpotify) -> Result<String, String> {
+    let song_response = spotify.current_playing(None, Some([&AdditionalType::Track])).await;
+    let mut message = String::new();
+
+    match song_response {
+        Ok(playing) => {
+            match playing {
+                Some(playing) => {
+                    match playing.item {
+                        Some(plyable_item) => {
+                            match plyable_item {
+                                PlayableItem::Track(track) => {
+                                    let artists = track.artists;
+                        
+                                    for (i, artist) in artists.iter().enumerate() {
+                                        if i != artists.len() - 1 {
+                                            message += &format!("{}, ", artist.name);
+                                        } else {
+                                            message += &format!("{} - ", artist.name);
+                                        }
+                                    }
+                        
+                                    message += &track.name;
+                                },
+                                _ => { }
+                            }
+                        },
+                        None => {
+                            return Err("Error: No song is currently playing.".to_owned());
+                        }
+                    }
+                },
+                None => {
+                    return Err("Error: No song is currently playing.".to_owned());
+                }
+            }
+        },
+        Err(err) => {
+            println!("Error when getting the song: {:?}", err);
+            return Err("Error: Couldn't get the current song.".to_owned());
+        }
+    }
+
+    Ok(message)
+}
