@@ -1,6 +1,7 @@
 use rand::{Rng, rngs::StdRng, SeedableRng};
 use rspotify::model::{PlayableItem, AdditionalType};
 use rspotify::{prelude::*, AuthCodeSpotify};
+use sqlite::{Connection, State};
 
 use crate::thunder;
 use crate::math::bernoullis_scheme;
@@ -358,4 +359,67 @@ pub fn wr() -> Result<String, String> {
 
 pub fn pb() -> Result<String, String> {
     Ok("1.16 AASSG: no pb.".to_owned())
+}
+
+pub fn topcommands(sqlite_connection: &Connection) -> Result<String, String> {
+    let query = "SELECT name, SUM(uses) as total_uses FROM commands GROUP BY name ORDER BY total_uses DESC LIMIT 3;";
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 most used commands: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let command_name = statement.read::<String, _>("name").unwrap();
+            let command_uses = statement.read::<i64, _>("total_uses").unwrap();
+        
+            message += &format!("{}: {} uses; ", command_name.replace("emark_", "!"), command_uses);
+        },
+        Err(error) => {
+            println!("Top commands error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
+}
+
+pub fn topchatters(sqlite_connection: &Connection) -> Result<String, String> {
+    let query = "SELECT display_name, messages FROM users ORDER BY messages DESC LIMIT 3;";
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 chatters: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let name = statement.read::<String, _>("display_name").unwrap();
+            let messages = statement.read::<i64, _>("messages").unwrap();
+        
+            message += &format!("{}: {} messages; ", name, messages);
+        },
+        Err(error) => {
+            println!("Top chatters error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
+}
+
+pub fn topspammers(sqlite_connection: &Connection) -> Result<String, String> {
+    let query = "SELECT users.display_name as username, SUM(uses) AS total_uses FROM commands INNER JOIN users on commands.user_id = users.user_id GROUP BY commands.user_id ORDER BY total_uses DESC LIMIT 3;";
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 command spammers: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let user = statement.read::<String, _>("username").unwrap();
+            let command_uses = statement.read::<i64, _>("total_uses").unwrap();
+        
+            message += &format!("{}: {} command uses; ", user, command_uses);
+        },
+        Err(error) => {
+            println!("Top commands error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
 }
