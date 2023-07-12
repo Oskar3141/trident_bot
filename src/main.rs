@@ -33,20 +33,24 @@ pub async fn main() {
     let url = spotify.get_authorize_url(false).unwrap();
     spotify.prompt_for_token(&url).await.unwrap();
 
+    // sqlite
+    let sqlite_connection = sqlite::open("chat_data.sqlite").unwrap();
+
+    let create_commands_table_query: &str = "CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, uses INTEGER, user_id INTEGER);";
+    let create_users_table_query: &str = "CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, display_name TEXT, messages INTEGER)";
+
+    sqlite_connection.execute(create_commands_table_query).unwrap();
+    sqlite_connection.execute(create_users_table_query).unwrap();
+ 
     // first thing you should do: start consuming incoming messages,
     // otherwise they will back up.
     let join_handle = tokio::spawn(async move {
         while let Some(message) = incoming_messages.recv().await {
             match message {
                 ServerMessage::Privmsg(msg) => {
+                    let user_id = msg.sender.id;
+                    let user_display_name = msg.sender.name;
                     let message_parts: Vec<&str> = msg.message_text.split(" ").collect();
-                    // let command: &str = message_parts[0]; 
-                    // let commands = message_parts.clone();
-
-                    // match get_message(command, message_parts, spotify.clone()).await {
-                    //     Some(message) => { send_client.say(CHANNEL.to_owned(), message).await.unwrap(); },
-                    //     None => {}
-                    // }
                     
                     let mut call_all_commands: bool = false;
                     let mut message: String = String::new();
@@ -101,11 +105,74 @@ pub async fn main() {
                                 "!pb" => {
                                     Some(commands::pb())
                                 },
+                                "!topcommands" => {
+                                    Some(commands::topcommands(&sqlite_connection))
+                                },
+                                "!topchatters" => {
+                                    Some(commands::topchatters(&sqlite_connection))
+                                },
+                                "!topspammers" => {
+                                    Some(commands::topspammers(&sqlite_connection))
+                                },
                                 _ => { None }
                             }
                         } else {
                             None
                         };
+
+                        // update commands
+                        if result != None || command == &"!combo" {
+                            let fixed_command_name: &str = &command.replace("!", "emark_");
+                            let command_update_query: &str = &format!("UPDATE commands SET uses = uses + 1 WHERE name = '{}' AND user_id = {};", fixed_command_name, user_id);
+                            let command_set_query: &str = &format!("INSERT INTO commands (name, uses, user_id) VALUES ('{}', 1, {});", fixed_command_name, user_id);
+                            
+                            let query_result = sqlite_connection.execute(command_update_query);
+
+                            match query_result {
+                                Err(err) => {
+                                    println!("command update query error: {}", err);
+
+                                    if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                                        println!("Error when sending a response message: {:?}", msg_send_error);
+                                    }
+                                },
+                                Ok(_) => {
+                                    if sqlite_connection.change_count() == 0 {
+                                        let query_result = sqlite_connection.execute(command_set_query);
+                                            
+                                        if let Err(query_error) = query_result {
+                                            println!("Command set query error: {}", query_error);
+                                            
+                                            if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                                                println!("Error when sending a response message: {:?}", msg_send_error);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            
+
+                            // if let Err(query_error) = query_result {
+                            //     if let Some(error_message) = query_error.message {
+                            //         if error_message == format!("no such column: {}", fixed_command_name) {
+                            //             let query_result = sqlite_connection.execute(command_set_query);
+                                    
+                            //             if let Err(query_error) = query_result {
+                            //                 println!("Command set query error: {}", query_error);
+                                            
+                            //                 if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                            //                     println!("Error when sending a response message: {:?}", msg_send_error);
+                            //                 }
+                            //             }
+                            //         } else {
+                            //             if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                            //                 println!("Error when sending a response message: {:?}", msg_send_error);
+                            //             }
+                            //         }
+                            //     }
+                            // }
+                        }
 
                         match result {
                             Some(value) => {
@@ -120,6 +187,36 @@ pub async fn main() {
 
                     }
 
+                    // update users data
+                    let user_update_query: &str = &format!("UPDATE users SET messages = messages + 1 WHERE user_id = {};", user_id);
+                    let user_set_query: &str = &format!("INSERT INTO users (user_id, display_name, messages) VALUES ({}, '{}', 1);", user_id, user_display_name);
+
+                    let query_result = sqlite_connection.execute(user_update_query);
+
+                    match query_result {
+                        Err(err) => {
+                            println!("User update query error: {}", err);
+
+                            if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                                println!("Error when sending a response message: {:?}", msg_send_error);
+                            }
+                        },
+                        Ok(_) => {
+                            if sqlite_connection.change_count() == 0 {
+                                let query_result = sqlite_connection.execute(user_set_query);
+                                    
+                                if let Err(query_error) = query_result {
+                                    println!("Command set query error: {}", query_error);
+                                    
+                                    if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                                        println!("Error when sending a response message: {:?}", msg_send_error);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // send message
                     let result = send_client.say(CHANNEL.to_owned(), message).await;
 
                     match result {
