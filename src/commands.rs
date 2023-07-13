@@ -358,7 +358,7 @@ pub fn wr() -> Result<String, String> {
 }
 
 pub fn pb() -> Result<String, String> {
-    Ok("1.16 AASSG: no pb.".to_owned())
+    Ok("AA RSG: 1.12: 4:38; 1.16: No completed run, 3:58 thunderless; AA SSG: 1.16: No pb.".to_owned())
 }
 
 pub fn topcommands(sqlite_connection: &Connection) -> Result<String, String> {
@@ -422,4 +422,17 @@ pub fn topspammers(sqlite_connection: &Connection) -> Result<String, String> {
     }
     
     Ok(message)
+}
+
+pub fn rollgunpowder() -> Result<String, String> {
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let mut gunpowder: u32 = 0;
+
+    for _ in 1..=16 {
+        if rng.gen_range(1..=50) <= 10 {
+            gunpowder += rng.gen_range(1..=8);
+        }
+    }
+
+    Ok(format!("You got {} gunpowder!", gunpowder))
 }

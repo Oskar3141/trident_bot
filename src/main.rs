@@ -114,6 +114,9 @@ pub async fn main() {
                                 "!topspammers" => {
                                     Some(commands::topspammers(&sqlite_connection))
                                 },
+                                "!rollgunpowder" => {
+                                    Some(commands::rollgunpowder())
+                                },
                                 _ => { None }
                             }
                         } else {
