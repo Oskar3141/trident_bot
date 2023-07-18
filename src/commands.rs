@@ -243,33 +243,33 @@ pub fn fishinge() -> Result<String, String> {
         let k: u32 = rng.gen_range(1..=100);
 
         if k <= 60 {
-            "a Raw Cod!"
+            "a Raw Cod! 🐟"
         } else if k > 60 && k <= 85 {
-            "a Raw Salmon!"
+            "a Raw Salmon! 🐟"
         } else if k > 85 && k <= 87 {
-            "a Tropical Fish!"
+            "a Tropical Fish! 🐠"
         } else {
-            "a Pufferfish!"
+            "a Pufferfish! 🐡"
         }
     } else if n == 18 {
         match rng.gen_range(1..=6) {
             1 => {
-                "an Enchanted Bow!"
+                "an Enchanted Bow! 🏹"
             },
             2 => {
-                "an Enchanted Book!"
+                "an Enchanted Book! 📖"
             },
             3 => {
-                "an Enchanted Fishing Rod!"
+                "an Enchanted Fishing Rod! 🎣"
             },
             4 => {
-                "a Name Tag!"
+                "a Name Tag! 📛"
             },
             5 => {
-                "a Nautilus Shell!"
+                "a Nautilus Shell! 🐚"
             },
             6 => {
-                "a Saddle!"
+                "a Saddle! 🐎"
             },
             _ => {
                 "you should never get this."
@@ -279,29 +279,29 @@ pub fn fishinge() -> Result<String, String> {
         let k: u32 = rng.gen_range(1..=100);
 
         if k <= 17 {
-            "a Lily Pad!"
+            "a Lily Pad! 🪷"
         } else if k > 17 && k <= 27 {
-            "a Bowl!"
+            "a Bowl! 🥣"
         } else if k > 27 && k <= 29 {
-            "a Fishing Rod!"
+            "a Fishing Rod! 🎣"
         } else if k > 29 && k <= 39 {
-            "a Leather!"
+            "Leather! 💼"
         } else if k > 39 && k <= 49 {
-            "an Leather Boots!"
+            "a Leather Boots! 👢"
         } else if k > 49 && k <= 59 {
-            "an Rotten Flesh!"
+            "an Rotten Flesh! 🥩"
         } else if k > 59 && k <= 64 {
-            "a Stick!"
+            "a Stick! 🏑"
         } else if k > 64 && k <= 69 {
-            "a String!"
+            "a String! 🪀"
         } else if k > 69 && k <= 79 {
-            "a Water Bottle!"
+            "a Water Bottle! 💦"
         } else if k > 79 && k <= 89 {
-            "a Bone"
+            "a Bone! 🦴"
         } else if k == 90  {
-            "10 Ink Sac!"
+            "10 Ink Sac! 🪶"
         } else  {
-            "a Tripwire Hook!"
+            "a Tripwire Hook! 🪝"
         }
     };
 
@@ -522,4 +522,8 @@ pub fn rollbiome() -> Result<String, String> {
     }
 
     Err("Error: Couldn't find a biome.".to_owned())
+}
+
+pub fn commands() -> Result<String, String> {
+    Ok("Commands file: https://github.com/Oskar-Dev/trident_bot/blob/master/src/commands.rs - good luck with figuring out how all this works.".to_owned())
 }
