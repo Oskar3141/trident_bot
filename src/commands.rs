@@ -2,6 +2,7 @@ use rand::{Rng, rngs::StdRng, SeedableRng};
 use rspotify::model::{PlayableItem, AdditionalType};
 use rspotify::{prelude::*, AuthCodeSpotify};
 use sqlite::{Connection, State};
+use std::collections::HashMap;
 
 use crate::thunder;
 use crate::math::bernoullis_scheme;
@@ -170,7 +171,7 @@ pub fn tridentodds(message_parts: Vec<&str>) -> Result<String, String> {
 }
 
 pub fn rolldrowned(message_parts: Vec<&str>) -> Result<String, String> {
-    let error: Result<String, String> = Err("Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned());
+    let error: Result<String, String> = Err("Error: Invalid syntax; !rolldrowned {drowned} {looting level}".to_owned());
 
     if message_parts.len() <= 2 {
         return error;
@@ -424,7 +425,7 @@ pub fn topspammers(sqlite_connection: &Connection) -> Result<String, String> {
     Ok(message)
 }
 
-pub fn rollgunpowder() -> Result<String, String> {
+pub fn rollgp() -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
     let mut gunpowder: u32 = 0;
 
@@ -435,4 +436,90 @@ pub fn rollgunpowder() -> Result<String, String> {
     }
 
     Ok(format!("You got {} gunpowder!", gunpowder))
+}
+
+pub fn rollbiome() -> Result<String, String> {
+    // This is a shit way to do this but i'm too lazy to do it in a better way.
+    let biomes = HashMap::from([
+        ("Forest", 38060816951),
+        ("Plains", 39985547347),
+        ("River", 18041713211),
+        ("Ocean", 33794996808),
+        ("Mountains", 29898531283),
+        ("Deep Ocean", 32573867472),
+        ("Swamp", 16124718827),
+        ("Desert", 20897575614),
+        ("Taiga", 18633313544),
+        ("Wooded Hills", 10223682968),
+        ("Lukewarm Ocean", 15745952870),
+        ("Cold Ocean", 14917861632),
+        ("Beach", 14199898280),
+        ("Dark Forest", 11692097469),
+        ("Birch Forest", 11661838126),
+        ("Savanna", 12964991674),
+        ("Wooded Mountains", 7014132060),
+        ("Deep Cold Ocean", 10577186376),
+        ("Deep Lukewarm Ocean", 11617367856),
+        ("Desert Hills", 5810895353),
+        ("Taiga Hills", 4128834830),
+        ("Birch Forest Hills", 3339030439),
+        ("Warm Ocean", 5940180755),
+        ("Jungle", 4460886481),
+        ("Savanna Plateau", 3282841807),
+        ("Snowy Tundra", 8841400745),
+        ("Giant Tree Taiga", 2996994360),
+        ("Sunflower Plains", 2616855572),
+        ("Deep Frozen Ocean", 3627404262),
+        ("Flower Forest", 2055260714),
+        ("Frozen Ocean", 2631260823),
+        ("Jungle Hills", 1550080250),
+        ("Snowy Mountains", 2923917321),
+        ("Stone Shore", 1945888784),
+        ("Giant Tree Taiga Hills", 1342424498),
+        ("Badlands", 1815318568),
+        ("Snowy Taiga", 2682541180),
+        ("Gravelly Mountains", 1353924708),
+        ("Wooded Badlands Plateau", 1256286198),
+        ("Modified Gravelly Mountains", 884083327),
+        ("Desert Lakes", 926615257),
+        ("Jungle Edge", 407387345),
+        ("Taiga Mountains", 809720951),
+        ("Badlands Plateau", 547928247),
+        ("Dark Forest Hills", 560542003),
+        ("Tall Birch Forest", 551946119),
+        ("Swamp Hills", 540238804),
+        ("Snowy Taiga Hills", 614618565),
+        ("Shattered Savanna", 588903346),
+        ("Tall Birch Hills", 415490146),
+        ("Bamboo Jungle", 407153563),
+        ("Shattered Savanna Plateau", 409085452),
+        ("Frozen River", 509199135),
+        ("Snowy Beach", 795354682),
+        ("Bamboo Jungle Hills", 132055350),
+        ("Modified Jungle", 210736272),
+        ("Ice Spikes", 413334512),
+        ("Giant Spruce Taiga Hills", 160486493),
+        ("Giant Spruce Taiga", 159615088),
+        ("Mushroom Fields", 135122523),
+        ("Eroded Badlands", 101993043),
+        ("Mushroom Field Shore", 91394091),
+        ("Modified Wooded Badlands Plateau", 60069217),
+        ("Snowy Taiga Mountains", 118770189),
+        ("Modified Badlands Plateau", 26848829),
+        ("Modified Jungle Edge", 1760744)
+    ]);
+    
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let n: u64 = rng.gen_range(1..=443_808_771_309);
+    let mut index: u64 = 0;
+
+    for (name, value) in biomes {
+        if n > index && n <= index + value {
+            return Ok(format!("Your biome: {}.", name));
+        } else {
+            index += value;
+        }
+    }
+
+    Err("Error: Couldn't find a biome.".to_owned())
 }
