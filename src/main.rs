@@ -120,6 +120,9 @@ pub async fn main() {
                                 "!rollbiome" => {
                                     Some(commands::rollbiome())
                                 },  
+                                "!commands" => {
+                                    Some(commands::commands())
+                                }
                                 _ => { None }
                             }
                         } else {
