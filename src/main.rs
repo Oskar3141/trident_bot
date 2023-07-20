@@ -38,9 +38,13 @@ pub async fn main() {
 
     let create_commands_table_query: &str = "CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, uses INTEGER, user_id INTEGER);";
     let create_users_table_query: &str = "CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, display_name TEXT, messages INTEGER)";
+    let create_trident_rolls_table_query: &str = "CREATE TABLE IF NOT EXISTS trident_rolls (id INTEGER PRIMARY KEY AUTOINCREMENT, durability INTEGER, unix_time INTEGER, user_id INTEGER)";
+    let create_gunpowder_rolls_table_query: &str = "CREATE TABLE IF NOT EXISTS gunpowder_rolls (id INTEGER PRIMARY KEY AUTOINCREMENT, gunpowder INTEGER, unix_time INTEGER, user_id INTEGER)";
 
     sqlite_connection.execute(create_commands_table_query).unwrap();
     sqlite_connection.execute(create_users_table_query).unwrap();
+    sqlite_connection.execute(create_trident_rolls_table_query).unwrap();
+    sqlite_connection.execute(create_gunpowder_rolls_table_query).unwrap();
  
     // first thing you should do: start consuming incoming messages,
     // otherwise they will back up.
@@ -67,7 +71,7 @@ pub async fn main() {
                                     Some(commands::nomic())
                                 },
                                 "!rolltrident" => {
-                                    Some(commands::rolltrident())
+                                    Some(commands::rolltrident(&sqlite_connection, &user_id))
                                 },
                                 "!age" => {
                                     Some(commands::age())
@@ -115,7 +119,7 @@ pub async fn main() {
                                     Some(commands::topspammers(&sqlite_connection))
                                 },
                                 "!rollgp" => {
-                                    Some(commands::rollgp())
+                                    Some(commands::rollgp(&sqlite_connection, &user_id))
                                 },
                                 "!rollbiome" => {
                                     Some(commands::rollbiome())
@@ -123,6 +127,18 @@ pub async fn main() {
                                 "!commands" => {
                                     Some(commands::commands())
                                 }
+                                "!rollcats" => {
+                                    Some(commands::rollcats(args))
+                                },
+                                "!rollblazerods" => {
+                                    Some(commands::rollblazerods(args))
+                                }
+                                "!tridentjuicers" => {
+                                    Some(commands::tridentjuicers(&sqlite_connection))
+                                },
+                                "!gpjuicers" => {
+                                    Some(commands::gpjuicers(&sqlite_connection))
+                                },
                                 _ => { None }
                             }
                         } else {

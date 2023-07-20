@@ -3,6 +3,7 @@ use rspotify::model::{PlayableItem, AdditionalType};
 use rspotify::{prelude::*, AuthCodeSpotify};
 use sqlite::{Connection, State};
 use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::thunder;
 use crate::math::bernoullis_scheme;
@@ -11,11 +12,20 @@ pub fn nomic() -> Result<String, String> {
     Ok("No Microphone.".to_owned())
 }
 
-pub fn rolltrident() -> Result<String, String> {
+pub fn rolltrident(sqlite_connection: &Connection, user_id: &str) -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
     let n: i32 = rng.gen_range(0..=250);
     let durability: i32 = rng.gen_range(0..=n);
+
+    // add data to the database
+    let unix_time: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+    let trident_query: &str = &format!("INSERT INTO trident_rolls (durability, unix_time, user_id) VALUES ({}, {}, {});", durability, unix_time, user_id);
+    let query_result = sqlite_connection.execute(trident_query);
+
+    if let Err(err) = query_result {
+        println!("Trident durability database error: {}", err);
+    }
 
     Ok(format!("Your trident has {} durability.", durability))
 }
@@ -425,7 +435,7 @@ pub fn topspammers(sqlite_connection: &Connection) -> Result<String, String> {
     Ok(message)
 }
 
-pub fn rollgp() -> Result<String, String> {
+pub fn rollgp(sqlite_connection: &Connection, user_id: &str) -> Result<String, String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
     let mut gunpowder: u32 = 0;
 
@@ -433,6 +443,15 @@ pub fn rollgp() -> Result<String, String> {
         if rng.gen_range(1..=50) <= 10 {
             gunpowder += rng.gen_range(1..=8);
         }
+    }
+
+    // add data to the database
+    let unix_time: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+    let gunpowder_query: &str = &format!("INSERT INTO gunpowder_rolls (gunpowder, unix_time, user_id) VALUES ({}, {}, {});", gunpowder, unix_time, user_id);
+    let query_result = sqlite_connection.execute(gunpowder_query);
+
+    if let Err(err) = query_result {
+        println!("Gunpowder ammount database error: {}", err);
     }
 
     Ok(format!("You got {} gunpowder!", gunpowder))
@@ -526,4 +545,127 @@ pub fn rollbiome() -> Result<String, String> {
 
 pub fn commands() -> Result<String, String> {
     Ok("Commands file: https://github.com/Oskar-Dev/trident_bot/blob/master/src/commands.rs - good luck with figuring out how all this works.".to_owned())
+}
+
+pub fn rollcats(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !rollcats {cats number}".to_owned());
+
+    if message_parts.len() <= 1 {
+        return error;
+    }
+
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let cats = message_parts[1].parse::<u32>();
+
+    let mut jellie: u32 = 0;
+    let mut calico: u32 = 0;
+    let mut red: u32 = 0;
+    let mut tuxedo: u32 = 0;
+    let mut white: u32 = 0;
+    let mut ragdoll: u32 = 0;
+    let mut british: u32 = 0;
+    let mut tabby: u32 = 0;
+    let mut persian: u32 = 0;
+    let mut siamese: u32 = 0;
+
+    match cats {
+        Ok(rolls) => {
+            for _ in 0..rolls {
+                match rng.gen_range(1..=10) {
+                    1 => { jellie += 1; },
+                    2 => { calico += 1; },
+                    3 => { red += 1; },
+                    4 => { tuxedo += 1; },
+                    5 => { white += 1; },
+                    6 => { ragdoll += 1; },
+                    7 => { british += 1; },
+                    8 => { tabby += 1; },
+                    9 => { persian += 1; },
+                    10 => { siamese += 1; },
+                    _ => {}
+                };
+            };
+        }
+        Err(_) => {
+            return error;
+        }
+    }
+        
+    Ok(format!("You got {} Jellie, {} Calico, {} Red, {} Tuxedo, {} White, {} Ragdoll, {} British, {} Tabby, {} Persian, {} Siamese.", 
+    jellie, calico, red, tuxedo, white, ragdoll, british, tabby, persian, siamese))
+}
+
+pub fn rollblazerods(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !rollblazerods {rods} {looting level}".to_owned());
+
+    if message_parts.len() <= 2 {
+        return error;
+    }
+
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let rods_number = message_parts[1].parse::<u32>();
+    let looting_level = message_parts[2].parse::<u32>();
+
+    let mut rods: u32 = 0;
+    let mut kills: u32 = 0;
+
+    match (rods_number, looting_level) {
+        (Ok(rods_number), Ok(looting_level)) => {
+            if looting_level > 3 {
+                return error;
+            }
+
+            while rods < rods_number {
+                rods += rng.gen_range(0..=(1+looting_level));
+                kills += 1;
+            }
+
+            return Ok(format!("You got {} blaze rods from killing {} blazes with looting {}.", rods_number, kills, looting_level))
+        },
+        _ => {
+            return error;
+        }
+    }
+}
+
+pub fn tridentjuicers(sqlite_connection: &Connection) -> Result<String, String> {
+    let query = "SELECT users.display_name as username, durability FROM trident_rolls INNER JOIN users on trident_rolls.user_id = users.user_id ORDER BY durability DESC LIMIT 3;";
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 best trident rolls: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let user = statement.read::<String, _>("username").unwrap();
+            let durability = statement.read::<i64, _>("durability").unwrap();
+        
+            message += &format!("{} - {}; ", user, durability);
+        },
+        Err(error) => {
+            println!("Trident juicers error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
+}
+
+pub fn gpjuicers(sqlite_connection: &Connection) -> Result<String, String> {
+    let query = "SELECT users.display_name as username, gunpowder FROM gunpowder_rolls INNER JOIN users on gunpowder_rolls.user_id = users.user_id ORDER BY gunpowder DESC LIMIT 3;";
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 best desert temple gunpowder rolls: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let user = statement.read::<String, _>("username").unwrap();
+            let durability = statement.read::<i64, _>("gunpowder").unwrap();
+        
+            message += &format!("{} - {}; ", user, durability);
+        },
+        Err(error) => {
+            println!("Gunpowder juicers error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
 }
