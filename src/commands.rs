@@ -692,3 +692,25 @@ pub fn dailytridentjuicers(sqlite_connection: &Connection) -> Result<String, Str
     
     Ok(message)
 }
+
+pub fn tridentnoobs(sqlite_connection: &Connection) -> Result<String, String> {
+    let query = "SELECT users.display_name as username, COUNT(durability) as zeros FROM trident_rolls INNER JOIN users on trident_rolls.user_id = users.user_id WHERE durability = 0 GROUP BY username ORDER BY zeros DESC LIMIT 3;";
+
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 chatters with most 0 durability trident rolls: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let user = statement.read::<String, _>("username").unwrap();
+            let zeros = statement.read::<i64, _>("zeros").unwrap();
+        
+            message += &format!("{} - {}; ", user, zeros);
+        },
+        Err(error) => {
+            println!("Trident noobs error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
+}
