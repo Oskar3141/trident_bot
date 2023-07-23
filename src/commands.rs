@@ -84,7 +84,7 @@ pub fn thunderodds(message_parts: Vec<&str>) -> Result<String, String> {
     }
 }
 
-pub fn skullrates(message_parts: Vec<&str>) -> Result<String, String> {
+pub fn skullodds(message_parts: Vec<&str>) -> Result<String, String> {
     let error: Result<String, String> = Err("Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned());
     
     if message_parts.len() <= 2 {
@@ -128,7 +128,7 @@ pub fn skullrates(message_parts: Vec<&str>) -> Result<String, String> {
 }
 
 pub fn tridentodds(message_parts: Vec<&str>) -> Result<String, String> {
-    let error: Result<String, String> = Err("Error: Invalid syntax; !skullodds {drops} {kills} {looting level}".to_owned());
+    let error: Result<String, String> = Err("Error: Invalid syntax; !tridentodds {durability}".to_owned());
     
     if message_parts.len() <= 1 {
         return error;
@@ -663,6 +663,29 @@ pub fn gpjuicers(sqlite_connection: &Connection) -> Result<String, String> {
         },
         Err(error) => {
             println!("Gunpowder juicers error: {}", error);
+            return Err(format!("Error: {}", error));
+        }
+    }
+    
+    Ok(message)
+}
+
+pub fn dailytridentjuicers(sqlite_connection: &Connection) -> Result<String, String> {
+    let one_day_ms: u128 = 86_400_000;
+    let unix_time: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+    let query = &format!("SELECT users.display_name as username, durability FROM trident_rolls INNER JOIN users on trident_rolls.user_id = users.user_id WHERE unix_time > {} ORDER BY durability DESC LIMIT 3;", unix_time - one_day_ms);
+    let statement = sqlite_connection.prepare(query);
+    let mut message: String = "Top 3 best trident rolls in last 24 hours: ".to_owned();
+
+    match statement {
+        Ok(mut statement) => while let Ok(State::Row) = statement.next() {
+            let user = statement.read::<String, _>("username").unwrap();
+            let durability = statement.read::<i64, _>("durability").unwrap();
+        
+            message += &format!("{} - {}; ", user, durability);
+        },
+        Err(error) => {
+            println!("Trident juicers error: {}", error);
             return Err(format!("Error: {}", error));
         }
     }

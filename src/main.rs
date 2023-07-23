@@ -89,7 +89,7 @@ pub async fn main() {
                                     Some(commands::thunderodds(args))
                                 },
                                 "!skullodds" => {
-                                    Some(commands::skullrates(args))
+                                    Some(commands::skullodds(args))
                                 },
                                 "!tridentodds" => {
                                     Some(commands::tridentodds(args))
@@ -138,6 +138,9 @@ pub async fn main() {
                                 },
                                 "!gpjuicers" => {
                                     Some(commands::gpjuicers(&sqlite_connection))
+                                },
+                                "!dailytridentjuicers" => {
+                                    Some(commands::dailytridentjuicers(&sqlite_connection))
                                 },
                                 _ => { None }
                             }
