@@ -142,7 +142,7 @@ pub async fn main() {
                                 "!dailytridentjuicers" => {
                                     Some(commands::dailytridentjuicers(&sqlite_connection))
                                 },
-                                "!tridentzeros" => {
+                                "!tridentnoobs" => {
                                     Some(commands::tridentnoobs(&sqlite_connection))
                                 },
                                 _ => { None }

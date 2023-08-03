@@ -299,7 +299,7 @@ pub fn fishinge() -> Result<String, String> {
         } else if k > 39 && k <= 49 {
             "a Leather Boots! 👢"
         } else if k > 49 && k <= 59 {
-            "an Rotten Flesh! 🥩"
+            "a Rotten Flesh! 🥩"
         } else if k > 59 && k <= 64 {
             "a Stick! 🏑"
         } else if k > 64 && k <= 69 {
@@ -534,7 +534,7 @@ pub fn rollbiome() -> Result<String, String> {
 
     for (name, value) in biomes {
         if n > index && n <= index + value {
-            return Ok(format!("Your biome: {}.", name));
+            return Ok(format!("You got {}!", name));
         } else {
             index += value;
         }
