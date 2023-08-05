@@ -126,13 +126,13 @@ pub async fn main() {
                                 },  
                                 "!commands" => {
                                     Some(commands::commands())
-                                }
+                                },
                                 "!rollcats" => {
                                     Some(commands::rollcats(args))
                                 },
                                 "!rollblazerods" => {
                                     Some(commands::rollblazerods(args))
-                                }
+                                },
                                 "!tridentjuicers" => {
                                     Some(commands::tridentjuicers(&sqlite_connection))
                                 },
@@ -145,6 +145,7 @@ pub async fn main() {
                                 "!tridentnoobs" => {
                                     Some(commands::tridentnoobs(&sqlite_connection))
                                 },
+                                "!rollskulls" => { Some(commands::rollskulls(args)) }
                                 _ => { None }
                             }
                         } else {

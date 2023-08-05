@@ -714,3 +714,36 @@ pub fn tridentnoobs(sqlite_connection: &Connection) -> Result<String, String> {
     
     Ok(message)
 }
+
+pub fn rollskulls(message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !rollskulls {skulls} {looting level}".to_owned());
+
+    if message_parts.len() <= 2 {
+        return error;
+    }
+
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let skulls_number = message_parts[1].parse::<u32>();
+    let looting_level = message_parts[2].parse::<u32>();
+
+    let mut skulls: u32 = 0;
+    let mut kills: u32 = 0;
+
+    match (skulls_number, looting_level) {
+        (Ok(skulls_number), Ok(looting_level)) => {
+            if looting_level > 3 {
+                return error;
+            }
+
+            while skulls < skulls_number {
+                skulls += if rng.gen_range(1..=1000) <= 25 + looting_level * 10 { 1 } else { 0 };
+                kills += 1;
+            }
+
+            return Ok(format!("You got {} skulls from killing {} wither skeletons with looting {}.", skulls_number, kills, looting_level))
+        },
+        _ => {
+            return error;
+        }
+    }
+}
