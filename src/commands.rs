@@ -794,8 +794,6 @@ pub fn commandstats(sqlite_connection: &Connection, message_parts: Vec<&str>) ->
                 }
             }
 
-            println!("{}", message);
-
             return Ok(message) 
         },
         _ => {
