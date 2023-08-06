@@ -369,7 +369,7 @@ pub fn wr() -> Result<String, String> {
 }
 
 pub fn pb() -> Result<String, String> {
-    Ok("AA RSG: 1.12: 4:38; 1.16: No completed run, 3:58 thunderless; AA SSG: 1.16: No pb.".to_owned())
+    Ok("AA RSG: 1.12: 4:38; 1.16: No pb (3:58 thunderless); AA SSG: 1.16: No pb (1:36:53 thunderless).".to_owned())
 }
 
 pub fn topcommands(sqlite_connection: &Connection) -> Result<String, String> {
@@ -744,6 +744,62 @@ pub fn rollskulls(message_parts: Vec<&str>) -> Result<String, String> {
         },
         _ => {
             return error;
+        }
+    }
+}
+
+pub fn commandstats(sqlite_connection: &Connection, message_parts: Vec<&str>) -> Result<String, String> {
+    let error: Result<String, String> = Err("Error: Invalid syntax; !commandstats {command name}".to_owned());
+
+    if message_parts.len() <= 1 {
+        return error;
+    }
+
+    let command_name = message_parts[1].parse::<String>();
+
+    match command_name {
+        Ok(command_name) => {
+            let db_command_name: &str = &command_name.replace("!", "emark_");
+            let total_uses_query = &format!("SELECT name, SUM(uses) AS total_uses FROM commands WHERE name = '{}';", db_command_name);
+            let top_users_query = &format!("SELECT name, SUM(uses) AS uses, users.display_name as username from commands INNER JOIN users on commands.user_id = users.user_id WHERE name = '{}' GROUP BY username ORDER BY uses DESC LIMIT 3;", db_command_name);
+
+            println!("{}, {}", command_name, db_command_name);
+
+            let total_uses_statement = sqlite_connection.prepare(total_uses_query);
+            let top_users_statement = sqlite_connection.prepare(top_users_query);
+            let mut message: String = format!("Top 3 users with most {} uses: ", command_name);
+
+            match top_users_statement {
+                Ok(mut top_users_statement) => while let Ok(State::Row) = top_users_statement.next() {
+                    let user = top_users_statement.read::<String, _>("username").unwrap();
+                    let uses = top_users_statement.read::<i64, _>("uses").unwrap();
+                    
+                    message += &format!("{}: {} uses; ", user, uses);
+                },
+                Err(error) => {
+                    println!("Command stats error: {}", error);
+                    return Err(format!("Error: {}", error));
+                }
+            }
+
+            match total_uses_statement {
+                Ok(mut total_uses_statement) => if let Ok(State::Row) = total_uses_statement.next() {
+                    let total_uses = total_uses_statement.read::<String, _>("total_uses").unwrap();
+
+                    message += &format!("Total uses: {}.", total_uses);
+                },
+                Err(error) => {
+                    println!("Command stats error: {}", error);
+                    return Err(format!("Error: {}", error));
+                }
+            }
+
+            println!("{}", message);
+
+            return Ok(message) 
+        },
+        _ => {
+            return error
         }
     }
 }

@@ -145,7 +145,12 @@ pub async fn main() {
                                 "!tridentnoobs" => {
                                     Some(commands::tridentnoobs(&sqlite_connection))
                                 },
-                                "!rollskulls" => { Some(commands::rollskulls(args)) }
+                                "!rollskulls" => { 
+                                    Some(commands::rollskulls(args)) 
+                                },
+                                "!commandstats" => {
+                                    Some(commands::commandstats(&sqlite_connection, args))
+                                },
                                 _ => { None }
                             }
                         } else {
