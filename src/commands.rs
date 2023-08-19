@@ -365,7 +365,7 @@ pub async fn song(spotify: AuthCodeSpotify) -> Result<String, String> {
 }
 
 pub fn wr() -> Result<String, String> {
-    Ok("1.16 AASSG: 1:46 by Oxidiot.".to_owned())
+    Ok("1.16 AASSG: 1:35 by Oxidiot.".to_owned())
 }
 
 pub fn pb() -> Result<String, String> {
@@ -762,8 +762,6 @@ pub fn commandstats(sqlite_connection: &Connection, message_parts: Vec<&str>) ->
             let db_command_name: &str = &command_name.replace("!", "emark_");
             let total_uses_query = &format!("SELECT name, SUM(uses) AS total_uses FROM commands WHERE name = '{}';", db_command_name);
             let top_users_query = &format!("SELECT name, SUM(uses) AS uses, users.display_name as username from commands INNER JOIN users on commands.user_id = users.user_id WHERE name = '{}' GROUP BY username ORDER BY uses DESC LIMIT 3;", db_command_name);
-
-            println!("{}, {}", command_name, db_command_name);
 
             let total_uses_statement = sqlite_connection.prepare(total_uses_query);
             let top_users_statement = sqlite_connection.prepare(top_users_query);
