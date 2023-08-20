@@ -3,3 +3,4 @@ twitch_data.rs
 .spotify_token_cache.json
 .env
 *.sqlite
+raid.txt
