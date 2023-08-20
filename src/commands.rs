@@ -3,6 +3,8 @@ use rspotify::model::{PlayableItem, AdditionalType};
 use rspotify::{prelude::*, AuthCodeSpotify};
 use sqlite::{Connection, State};
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::thunder;
@@ -796,6 +798,29 @@ pub fn commandstats(sqlite_connection: &Connection, message_parts: Vec<&str>) ->
         },
         _ => {
             return error
+        }
+    }
+}
+
+pub fn raid(file_path: &str) -> Result<String, String> {
+    let error: String = "Error: Couldn't get the raids.".to_owned();
+
+    match File::open(file_path) {
+        Err(err) => {
+            println!("{}, {}", error, err);
+            return Err(error);
+        },
+        Ok(mut file) => {
+            let mut value: String = String::new();
+            match file.read_to_string(&mut value) {
+                Err(err) => {
+                    println!("{}, {}", error, err);
+                    return Err(error);
+                },
+                Ok(_) => {
+                    return Ok(value);
+                }
+            }
         }
     }
 }

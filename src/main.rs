@@ -1,17 +1,53 @@
 use twitch_irc::login::StaticLoginCredentials;
 use twitch_irc::TwitchIRCClient;
-use twitch_irc::message::ServerMessage;
+use twitch_irc::message::{ServerMessage, UserNoticeEvent};
 use twitch_irc::{ClientConfig, SecureTCPTransport};
 use twitch_data::{LOGIN, OAUTH_TOKEN, CHANNEL};
 use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth, Config};
+use std::fs::{self, File, OpenOptions};
+use std::io::prelude::*;
 
 mod twitch_data;
 mod commands;
 mod thunder;
 mod math;
 
+const RAID_FILE_PATH: &str = "./raid.txt";
+const RAID_FILE_DEFAULT_VALUE: &str = "No raids.";
+
+fn check_raid_file() {
+    match fs::metadata(RAID_FILE_PATH) {
+        Err(_) => {
+            match File::create(RAID_FILE_PATH) {
+                Ok(mut file) => {
+                    if let Err(err) = file.write(RAID_FILE_DEFAULT_VALUE.as_bytes()) {
+                        println!("Couldn't write to raid file: {}", err);
+                    }
+                },
+                Err(err) => {
+                    println!("Couldn't create raid file: {}", err);
+                }
+            }
+        },
+        Ok(_) => {},
+    }
+}
+
+async fn send_message(message: String, client: &TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>) {
+    let result = client.say(CHANNEL.to_owned(), message).await;
+
+    match result {
+        Ok(_) => {},
+        Err(err) => {
+            println!("Error when sending a response message: {:?}", err);
+        }
+    }
+}
+
 #[tokio::main]
 pub async fn main() {
+    check_raid_file();
+
     // default configuration is to join chat as anonymous.
     let config = ClientConfig::new_simple(
         StaticLoginCredentials::new(LOGIN.to_owned(), Some(OAUTH_TOKEN.to_owned()))
@@ -51,6 +87,68 @@ pub async fn main() {
     let join_handle = tokio::spawn(async move {
         while let Some(message) = incoming_messages.recv().await {
             match message {
+                ServerMessage::UserNotice(notice) => {
+                    match notice.event {
+                        UserNoticeEvent::Raid { viewer_count: _, profile_image_url: _ } => { 
+                            let user: String = notice.sender.name;
+                            let error_message: String = "Error: Couldn't automatically update the !raid command.".to_owned();
+                            let mut value: String = String::new();
+
+                            match OpenOptions::new().write(true).read(true).open(RAID_FILE_PATH) {
+                                Ok(mut file) => {
+                                    match file.read_to_string(&mut value) {
+                                        Ok(_) => {
+                                            let raid_message: String;
+
+                                            if value == RAID_FILE_DEFAULT_VALUE {
+                                                raid_message = format!("{}. PagBounce", user);
+                                            } else {
+                                                let new_value = value.strip_suffix(". PagBounce");
+
+                                                match new_value {
+                                                    Some(v) => {
+                                                        raid_message = format!("{}, {}. PagBounce", v, user)
+                                                    },
+                                                    None => {
+                                                        raid_message = format!("{}, {}. PagBounce", value, user)
+                                                    }
+                                                }
+                                            }
+
+                                            match file.set_len(0) {
+                                                Ok(_) => {
+                                                    match file.write(raid_message.as_bytes()) {
+                                                        Err(err) => {
+                                                            println!("{} {}", error_message, err);
+                                                            send_message(error_message, &send_client).await;
+                                                        }
+                                                        Ok(_) => {
+                                                            let message: String = format!("Automatically updated the!raid command to: {}", raid_message);
+                                                            send_message(message, &send_client).await;
+                                                        }
+                                                    }
+                                                }
+                                                Err(err) => {
+                                                    println!("{} {}", error_message, err);
+                                                    send_message(error_message, &send_client).await;
+                                                }
+                                            }
+                                        },
+                                        Err(err) => {
+                                            println!("{} {}", error_message, err);
+                                            send_message(error_message, &send_client).await;
+                                        }
+                                    }
+                                },
+                                Err(err) => {
+                                    println!("{} {}", error_message, err);
+                                    send_message(error_message, &send_client).await;
+                                }
+                            }
+                         },
+                         _ => {}
+                    }
+                },
                 ServerMessage::Privmsg(msg) => {
                     let user_id = msg.sender.id;
                     let user_display_name = msg.sender.name;
@@ -150,6 +248,10 @@ pub async fn main() {
                                 },
                                 "!commandstats" => {
                                     Some(commands::commandstats(&sqlite_connection, args))
+                                },
+                                "!raid" => {
+                                    check_raid_file();
+                                    Some(commands::raid(RAID_FILE_PATH))
                                 },
                                 _ => { None }
                             }
