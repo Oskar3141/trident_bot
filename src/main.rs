@@ -123,7 +123,7 @@ pub async fn main() {
                                                             send_message(error_message, &send_client).await;
                                                         }
                                                         Ok(_) => {
-                                                            let message: String = format!("Automatically updated the!raid command to: {}", raid_message);
+                                                            let message: String = format!("Automatically updated the! raid command to: {}", raid_message);
                                                             send_message(message, &send_client).await;
                                                         }
                                                     }
