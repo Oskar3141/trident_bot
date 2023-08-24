@@ -371,7 +371,7 @@ pub fn wr() -> Result<String, String> {
 }
 
 pub fn pb() -> Result<String, String> {
-    Ok("AA RSG: 1.12: 4:38; 1.16: No pb (3:58 thunderless); AA SSG: 1.16: No pb (1:36:53 thunderless).".to_owned())
+    Ok("AA RSG: 1.12: 4:38; 1.16: No pb (3:58 thunderless); AA SSG: 1.16: No pb (1:36:53 thunderless; 1:33 honeyless with thunder TrollDespair ).".to_owned())
 }
 
 pub fn topcommands(sqlite_connection: &Connection) -> Result<String, String> {
