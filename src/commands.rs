@@ -299,7 +299,7 @@ pub fn fishinge() -> Result<String, String> {
         } else if k > 29 && k <= 39 {
             "Leather! 💼"
         } else if k > 39 && k <= 49 {
-            "a Leather Boots! 👢"
+            "Leather Boots! 👢"
         } else if k > 49 && k <= 59 {
             "a Rotten Flesh! 🥩"
         } else if k > 59 && k <= 64 {
