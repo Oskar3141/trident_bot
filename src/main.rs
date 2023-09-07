@@ -71,6 +71,7 @@ pub async fn main() {
 
     // sqlite
     let sqlite_connection = sqlite::open("chat_data.sqlite").unwrap();
+    // spotify.add_item_to_queue("https://open.spotify.com/track/3ZEno9fORwMA1HPecdLi0R", None);
 
     let create_commands_table_query: &str = "CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, uses INTEGER, user_id INTEGER);";
     let create_users_table_query: &str = "CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, display_name TEXT, messages INTEGER)";
@@ -85,8 +86,9 @@ pub async fn main() {
     // first thing you should do: start consuming incoming messages,
     // otherwise they will back up.
     let join_handle = tokio::spawn(async move {
-        while let Some(message) = incoming_messages.recv().await {
-            match message {
+        while let Some(server_message) = incoming_messages.recv().await {
+            // println!("{:#?}", server_message);
+            match server_message {
                 ServerMessage::UserNotice(notice) => {
                     match notice.event {
                         UserNoticeEvent::Raid { viewer_count: _, profile_image_url: _ } => { 
