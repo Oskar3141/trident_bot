@@ -19,9 +19,9 @@ pub fn get_thunder_duration(
     let rain_cycle_end: u64 = rain_cycle_start + rain_cycle_duration;
     let thunder_cycle_end: u64 = thunder_cycle_start + thunder_cycle_duration;
 
-    if rain_cycle_start > thunder_cycle_end || thunder_cycle_start > rain_cycle_end {
-        return 0;
-    }
+    // if rain_cycle_start > thunder_cycle_end || thunder_cycle_start > rain_cycle_end {
+    //     return 0;
+    // }
 
     // if rain_cycle_start >= thunder_cycle_start && rain_cycle_end <= thunder_cycle_end {
     //     return rain_cycle_end - rain_cycle_start;
@@ -46,6 +46,15 @@ pub fn get_thunder_duration(
     } else if rain_cycle_end > thunder_cycle_start && rain_cycle_end < thunder_cycle_end {
         return rain_cycle_end - thunder_cycle_start;
     }
+
+    // println!("{}, {}, {}, {}, {}, {}", 
+    //     rain_cycle_start as f64 / ONE_MINUTE_IN_TICKS as f64, 
+    //     rain_cycle_duration as f64 / ONE_MINUTE_IN_TICKS as f64, 
+    //     thunder_cycle_start as f64 / ONE_MINUTE_IN_TICKS as f64, 
+    //     thunder_cycle_duration as f64 / ONE_MINUTE_IN_TICKS as f64, 
+    //     rain_cycle_end as f64 / ONE_MINUTE_IN_TICKS as f64, 
+    //     thunder_cycle_end as f64 / ONE_MINUTE_IN_TICKS as f64
+    // );
 
     0
 }
@@ -93,12 +102,12 @@ pub fn get_thunder_odds(time: u64) -> f64 {
             if rain_cycle_start <= thunder_cycle_start {
                 let rain_cycle_end: u64 = rain_cycle_start + rain_cycle_duration;
                 
-                rain_cycle_start = rng.gen_range((rain_cycle_end + MIN_TIME_BETWEEN_CYCLES)..(rain_cycle_end + MAX_TIME_BETWEEN_CYCLES - 1));
+                rain_cycle_start = rain_cycle_end + rng.gen_range((MIN_TIME_BETWEEN_CYCLES + 1)..MAX_TIME_BETWEEN_CYCLES);
                 rain_cycle_duration = rng.gen_range(MIN_RAIN_CYCLE_DURATION..MAX_RAIN_CYCLE_DURATION);
             } else {
                 let thunder_cycle_end: u64 = thunder_cycle_start + thunder_cycle_duration;
                 
-                thunder_cycle_start = rng.gen_range((thunder_cycle_end + MIN_TIME_BETWEEN_CYCLES)..(thunder_cycle_end + MAX_TIME_BETWEEN_CYCLES - 1));
+                thunder_cycle_start = thunder_cycle_end + rng.gen_range((MIN_TIME_BETWEEN_CYCLES + 1)..MAX_TIME_BETWEEN_CYCLES);
                 thunder_cycle_duration = rng.gen_range(MIN_THUNDER_CYCLE_DURATION..MAX_THUNDER_CYCLE_DURATION);
             }
         }
