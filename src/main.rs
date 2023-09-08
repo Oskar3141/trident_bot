@@ -14,6 +14,28 @@ mod math;
 
 const RAID_FILE_PATH: &str = "./raid.txt";
 const RAID_FILE_DEFAULT_VALUE: &str = "No raids.";
+const MAX_MESSAGE_LENGTH: usize = 450;
+
+fn split_message(message: String, slices: &mut Vec<String>) {
+    let mut offset: usize = 0;
+
+    while !message.is_char_boundary(MAX_MESSAGE_LENGTH - offset) {
+        offset += 1;
+
+        if offset >= MAX_MESSAGE_LENGTH {
+            return;
+        }
+    }
+
+    let (first, last) = message.split_at(MAX_MESSAGE_LENGTH - offset);
+    slices.push(first.to_owned());
+    
+    if last.len() > MAX_MESSAGE_LENGTH {
+        split_message(last.to_owned(), slices) 
+    } else {
+        slices.push(last.to_owned());
+    }
+}
 
 fn check_raid_file() {
     match fs::metadata(RAID_FILE_PATH) {
@@ -34,12 +56,22 @@ fn check_raid_file() {
 }
 
 async fn send_message(message: String, client: &TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>) {
-    let result = client.say(CHANNEL.to_owned(), message).await;
+    let message: String = message.trim().to_owned();
+    let mut messages: Vec<String> = Vec::new();
+    if message.len() > MAX_MESSAGE_LENGTH {
+        split_message(message, &mut messages);
+    } else {
+        messages.push(message);
+    }
 
-    match result {
-        Ok(_) => {},
-        Err(err) => {
-            println!("Error when sending a response message: {:?}", err);
+    for message in messages {
+        let result = client.say(CHANNEL.to_owned(), message).await;
+        
+        match result {
+            Ok(_) => {},
+            Err(err) => {
+                println!("Error when sending a response message: {:?}", err);
+            }
         }
     }
 }
@@ -358,14 +390,15 @@ pub async fn main() {
                     }
 
                     // send message
-                    let result = send_client.say(CHANNEL.to_owned(), message).await;
+                    send_message(message, &send_client).await;
+                    // let result = send_client.say(CHANNEL.to_owned(), message).await;
 
-                    match result {
-                        Ok(_) => {},
-                        Err(err) => {
-                            println!("Error when sending a response message: {:?}", err);
-                        }
-                    }
+                    // match result {
+                    //     Ok(_) => {},
+                    //     Err(err) => {
+                    //         println!("Error when sending a response message: {:?}", err);
+                    //     }
+                    // }
                 },
                 _ => {}
             }
