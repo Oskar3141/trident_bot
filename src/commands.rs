@@ -1,3 +1,4 @@
+use rand::distributions::{Uniform, Distribution};
 use rand::{Rng, rngs::StdRng, SeedableRng};
 use rspotify::model::{PlayableItem, AdditionalType};
 use rspotify::{prelude::*, AuthCodeSpotify};
@@ -6,6 +7,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::time::{SystemTime, UNIX_EPOCH};
+// use rand_xoshiro::rand_core::;
+use rand_xoshiro::Xoroshiro128PlusPlus;
 
 use crate::thunder;
 use crate::math::bernoullis_scheme;
@@ -189,7 +192,8 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> Result<String, String> {
         return error;
     }
 
-    let mut rng: StdRng = SeedableRng::from_entropy();
+    let mut rng = Xoroshiro128PlusPlus::from_entropy();
+    // rng::x
 
     let kills = message_parts[1].parse::<u32>();
     let looting_level = message_parts[2].parse::<u32>();
@@ -206,25 +210,28 @@ pub fn rolldrowned(message_parts: Vec<&str>) -> Result<String, String> {
             let mut fishing_rods: u32 = 0;
             let mut copper_ingots: u32 = 0;
 
+            let rotten_flesh_range = Uniform::from(0..(2 + looting_level));
+            let one_to_hundred_range = Uniform::from(1..=100);
+            let drowned_first_roll_range = Uniform::from(1..=10000);
+            let drowned_third_roll_range = Uniform::from(0..16);
+
             for _ in 0..kills {
-                rotten_flesh += rng.gen_range(0..(2 + looting_level));
-                copper_ingots += if rng.gen_range(1..=100) <= (11 + looting_level) {
+                rotten_flesh += rotten_flesh_range.sample(&mut rng);
+                copper_ingots += if one_to_hundred_range.sample(&mut rng) <= (11 + looting_level) {
                     1
                 } else {
                     0
                 };
 
-                if rng.gen_range(1..=1000) <= 85 + looting_level * 10  {
-                    if rng.gen_range(1..=10) == 10 {
-                        if rng.gen_range(0..16) < 10 {
-                            tridents += 1;
-                        } else {
-                            fishing_rods += 1;
-                        }
+                if drowned_first_roll_range.sample(&mut rng) <= 85 + looting_level * 10  {
+                    if drowned_third_roll_range.sample(&mut rng) < 10 {
+                        tridents += 1;
+                    } else {
+                        fishing_rods += 1;
                     }
                 }
                     
-                if rng.gen_range(1..=100) <= 3 {
+                if one_to_hundred_range.sample(&mut rng) <= 3 {
                     shells += 1;
                 }
             }
