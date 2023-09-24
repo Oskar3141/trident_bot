@@ -10,8 +10,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 // use rand_xoshiro::rand_core::;
 use rand_xoshiro::Xoroshiro128PlusPlus;
 
-use crate::thunder;
+use crate::thunder::{self, format_start_time};
 use crate::math::bernoullis_scheme;
+use crate::phantoms::get_phantoms_spawn_time;
 
 pub fn nomic() -> Result<String, String> {
     Ok("No Microphone.".to_owned())
@@ -378,7 +379,7 @@ pub fn wr() -> Result<String, String> {
 }
 
 pub fn pb() -> Result<String, String> {
-    Ok("AA RSG: 1.12: 4:38; 1.16: No pb (3:58 thunderless); AA SSG: 1.16: No pb (1:36:53 thunderless).".to_owned())
+    Ok("AA RSG: 1.12: 4:38; 1.16: No pb (3:58 thunderless); AA SSG: 1.16: No pb (1:27 thunderless).".to_owned())
 }
 
 pub fn topcommands(sqlite_connection: &Connection) -> Result<String, String> {
@@ -830,4 +831,12 @@ pub fn raid(file_path: &str) -> Result<String, String> {
             }
         }
     }
+}
+
+pub fn rollphantoms() -> Result<String, String> {
+    let (time, spawns) = get_phantoms_spawn_time(); 
+    let formatted_time: String = format_start_time(time);
+
+
+    Ok(format!("You got {} phantoms spawn at {}!", spawns, formatted_time))
 }

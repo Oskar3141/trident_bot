@@ -11,6 +11,7 @@ mod twitch_data;
 mod commands;
 mod thunder;
 mod math;
+mod phantoms;
 
 const RAID_FILE_PATH: &str = "./raid.txt";
 const RAID_FILE_DEFAULT_VALUE: &str = "No raids.";
@@ -286,6 +287,9 @@ pub async fn main() {
                                 "!raid" => {
                                     check_raid_file();
                                     Some(commands::raid(RAID_FILE_PATH))
+                                },
+                                "!rollphantoms" => {
+                                    Some(commands::rollphantoms())
                                 },
                                 _ => { None }
                             }
