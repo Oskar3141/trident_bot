@@ -6,12 +6,14 @@ use twitch_data::{LOGIN, OAUTH_TOKEN, CHANNEL};
 use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth, Config};
 use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
+use twitch_api::ban;
 
 mod twitch_data;
 mod commands;
 mod thunder;
 mod math;
 mod phantoms;
+mod twitch_api;
 
 const RAID_FILE_PATH: &str = "./raid.txt";
 const RAID_FILE_DEFAULT_VALUE: &str = "No raids.";
@@ -188,6 +190,9 @@ pub async fn main() {
                     let user_id = msg.sender.id;
                     let user_display_name = msg.sender.name;
                     let message_parts: Vec<&str> = msg.message_text.split(" ").collect();
+
+                    let mut ban: bool = false;
+                    let mut ban_duration: u32 = 0;
                     
                     let mut call_all_commands: bool = false;
                     let mut message: String = String::new();
@@ -204,7 +209,17 @@ pub async fn main() {
                                     Some(commands::nomic())
                                 },
                                 "!rolltrident" => {
-                                    Some(commands::rolltrident(&sqlite_connection, &user_id))
+                                    let conn = sqlite_connection;
+                                    if let Ok((resp, dur)) = commands::rolltrident(&sqlite_connection, &user_id) {
+                                        if dur == 0 || dur == 1 {
+                                            ban_duration = if dur == 1 { 300 } else { 600 }; 
+                                            ban = true;
+                                        }
+
+                                        Some(Ok(resp))
+                                    } else {
+                                        Some(Err("Error message".to_owned()))
+                                    }
                                 },
                                 "!age" => {
                                     Some(commands::age())
@@ -297,6 +312,13 @@ pub async fn main() {
                             None
                         };
 
+                        // let result: Option<Result<String, String>> = None;
+
+                        // ban
+                        if ban {
+                            ban(&user_id, "Your trident roll sucks.", ban_duration).await;
+                        }
+
                         // update commands
                         if result != None || command == &"!combo" {
                             let fixed_command_name: &str = &command.replace("!", "emark_");
@@ -330,25 +352,25 @@ pub async fn main() {
 
                             
 
-                            // if let Err(query_error) = query_result {
-                            //     if let Some(error_message) = query_error.message {
-                            //         if error_message == format!("no such column: {}", fixed_command_name) {
-                            //             let query_result = sqlite_connection.execute(command_set_query);
+                            if let Err(query_error) = query_result {
+                                if let Some(error_message) = query_error.message {
+                                    if error_message == format!("no such column: {}", fixed_command_name) {
+                                        let query_result = sqlite_connection.execute(command_set_query);
                                     
-                            //             if let Err(query_error) = query_result {
-                            //                 println!("Command set query error: {}", query_error);
+                                        if let Err(query_error) = query_result {
+                                            println!("Command set query error: {}", query_error);
                                             
-                            //                 if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
-                            //                     println!("Error when sending a response message: {:?}", msg_send_error);
-                            //                 }
-                            //             }
-                            //         } else {
-                            //             if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
-                            //                 println!("Error when sending a response message: {:?}", msg_send_error);
-                            //             }
-                            //         }
-                            //     }
-                            // }
+                                            if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                                                println!("Error when sending a response message: {:?}", msg_send_error);
+                                            }
+                                        }
+                                    } else {
+                                        if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                                            println!("Error when sending a response message: {:?}", msg_send_error);
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         match result {

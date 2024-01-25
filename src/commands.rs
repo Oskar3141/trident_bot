@@ -18,11 +18,11 @@ pub fn nomic() -> Result<String, String> {
     Ok("No Microphone.".to_owned())
 }
 
-pub fn rolltrident(sqlite_connection: &Connection, user_id: &str) -> Result<String, String> {
+pub fn rolltrident(sqlite_connection: &Connection, user_id: &str) -> Result<(String, u32), String> {
     let mut rng: StdRng = SeedableRng::from_entropy();
 
-    let n: i32 = rng.gen_range(0..=250);
-    let durability: i32 = rng.gen_range(0..=n);
+    let n: u32 = rng.gen_range(0..=250);
+    let durability: u32 = rng.gen_range(0..=n);
 
     // add data to the database
     let unix_time: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
@@ -33,7 +33,14 @@ pub fn rolltrident(sqlite_connection: &Connection, user_id: &str) -> Result<Stri
         println!("Trident durability database error: {}", err);
     }
 
-    Ok(format!("Your trident has {} durability.", durability))
+    if durability == 0 || durability == 1 {
+        // let duration: u32 = if durability == 0 { 300 } else { 600 }; 
+
+        // twitch_api::ban(user_id, "Your trident roll sucks.", duration);
+        return Ok((format!("Your trident has {} durability LULW !", durability), durability))
+    } else {
+        return Ok((format!("Your trident has {} durability.", durability), durability))
+    }
 }
 
 pub fn age() -> Result<String, String> {

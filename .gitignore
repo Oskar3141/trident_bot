@@ -4,3 +4,4 @@ twitch_data.rs
 .env
 *.sqlite
 raid.txt
+twitch_api.rs
