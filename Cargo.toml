@@ -12,6 +12,7 @@ lto = true
 [dependencies]
 rand = { version = "0.8.5", features = ["small_rng"] }
 rand_xoshiro = "0.6.0"
+reqwest = "0.11.23"
 rspotify = { version = "0.11.7", features = ["env-file", "cli"] }
 sqlite = "0.31.0"
 tokio = { version =  "1.29.1", features = ["full"] }
