@@ -191,8 +191,8 @@ pub async fn main() {
                     let user_display_name = msg.sender.name;
                     let message_parts: Vec<&str> = msg.message_text.split(" ").collect();
 
-                    let mut ban: bool = false;
-                    let mut ban_duration: u32 = 0;
+                    // let mut banan: bool = false;
+                    // let mut ban_duration: u32 = 0;
                     
                     let mut call_all_commands: bool = false;
                     let mut message: String = String::new();
@@ -209,11 +209,11 @@ pub async fn main() {
                                     Some(commands::nomic())
                                 },
                                 "!rolltrident" => {
-                                    let conn = sqlite_connection;
+                                    // let conn = sqlite_connection;
                                     if let Ok((resp, dur)) = commands::rolltrident(&sqlite_connection, &user_id) {
                                         if dur == 0 || dur == 1 {
-                                            ban_duration = if dur == 1 { 300 } else { 600 }; 
-                                            ban = true;
+                                            // ban_duration = if dur == 1 { 300 } else { 600 }; 
+                                            // banan = true;
                                         }
 
                                         Some(Ok(resp))
@@ -306,6 +306,9 @@ pub async fn main() {
                                 "!rollphantoms" => {
                                     Some(commands::rollphantoms())
                                 },
+                                "!rollaassg" => {
+                                    Some(commands::rollaassg())
+                                },
                                 _ => { None }
                             }
                         } else {
@@ -315,9 +318,9 @@ pub async fn main() {
                         // let result: Option<Result<String, String>> = None;
 
                         // ban
-                        if ban {
-                            ban(&user_id, "Your trident roll sucks.", ban_duration).await;
-                        }
+                        // if banan {
+                        //     ban(&user_id, "Your trident roll sucks.", ban_duration).await;
+                        // }
 
                         // update commands
                         if result != None || command == &"!combo" {
@@ -326,9 +329,13 @@ pub async fn main() {
                             let command_set_query: &str = &format!("INSERT INTO commands (name, uses, user_id) VALUES ('{}', 1, {});", fixed_command_name, user_id);
                             
                             let query_result = sqlite_connection.execute(command_update_query);
+                            let mut is_error: bool = false;
+                            let mut error_message = String::new();
 
                             match query_result {
                                 Err(err) => {
+                                    is_error = true;
+
                                     println!("command update query error: {}", err);
 
                                     if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
@@ -351,26 +358,26 @@ pub async fn main() {
                             }
 
                             
-
-                            if let Err(query_error) = query_result {
-                                if let Some(error_message) = query_error.message {
-                                    if error_message == format!("no such column: {}", fixed_command_name) {
-                                        let query_result = sqlite_connection.execute(command_set_query);
+                            // fix error handling eventually
+                            // if is_error {
+                            //     if let Some(error_message) = query_error.message {
+                            //         if error_message == format!("no such column: {}", fixed_command_name) {
+                            //             let query_result = sqlite_connection.execute(command_set_query);
                                     
-                                        if let Err(query_error) = query_result {
-                                            println!("Command set query error: {}", query_error);
+                            //             if let Err(query_error) = query_result {
+                            //                 println!("Command set query error: {}", query_error);
                                             
-                                            if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
-                                                println!("Error when sending a response message: {:?}", msg_send_error);
-                                            }
-                                        }
-                                    } else {
-                                        if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
-                                            println!("Error when sending a response message: {:?}", msg_send_error);
-                                        }
-                                    }
-                                }
-                            }
+                            //                 if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                            //                     println!("Error when sending a response message: {:?}", msg_send_error);
+                            //                 }
+                            //             }
+                            //         } else {
+                            //             if let Err(msg_send_error) = send_client.say(CHANNEL.to_owned(), "Error: Database error.".to_owned()).await {
+                            //                 println!("Error when sending a response message: {:?}", msg_send_error);
+                            //             }
+                            //         }
+                            //     }
+                            // }
                         }
 
                         match result {
