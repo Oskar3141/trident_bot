@@ -60,20 +60,24 @@ fn check_raid_file() {
 
 async fn send_message(message: String, client: &TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>) {
     let message: String = message.trim().to_owned();
-    let mut messages: Vec<String> = Vec::new();
-    if message.len() > MAX_MESSAGE_LENGTH {
-        split_message(message, &mut messages);
-    } else {
-        messages.push(message);
-    }
+    let messages_split: Vec<&str> = message.split('$').collect();
 
-    for message in messages {
-        let result = client.say(CHANNEL.to_owned(), message).await;
-        
-        match result {
-            Ok(_) => {},
-            Err(err) => {
-                println!("Error when sending a response message: {:?}", err);
+    for message in messages_split {
+        let mut messages: Vec<String> = Vec::new();
+        if message.len() > MAX_MESSAGE_LENGTH {
+            split_message(message.to_owned(), &mut messages);
+        } else {
+            messages.push(message.to_owned());
+        }
+
+        for message in messages {
+            let result = client.say(CHANNEL.to_owned(), message).await;
+            
+            match result {
+                Ok(_) => {},
+                Err(err) => {
+                    println!("Error when sending a response message: {:?}", err);
+                }
             }
         }
     }
@@ -200,7 +204,8 @@ pub async fn main() {
                         let args: Vec<&str> = message_parts[i..message_parts.len()].into();
 
                         let result: Option<Result<String, String>> = if call_all_commands || i == 0 {
-                            match *command {
+                            let cmd: &str = &command.to_lowercase();
+                            match cmd {
                                 "!combo" => {
                                     call_all_commands = true;
                                     None
@@ -308,6 +313,21 @@ pub async fn main() {
                                 },
                                 "!rollaassg" => {
                                     Some(commands::rollaassg())
+                                },
+                                "!route" => {
+                                    Some(commands::route())
+                                },
+                                "!rollsilence" => {
+                                    Some(commands::rollsilence())
+                                },
+                                "!hdwghfix" => {
+                                    Some(commands::hdwghfix())
+                                },
+                                "!caamel" => {
+                                    Some(commands::caamel())
+                                },
+                                "!rollheavycore" => {
+                                    Some(commands::rollheavycore())
                                 },
                                 _ => { None }
                             }
