@@ -382,11 +382,12 @@ pub async fn song(spotify: AuthCodeSpotify) -> Result<String, String> {
 }
 
 pub fn wr() -> Result<String, String> {
-    Ok("1.16 AASSG: 1:35:54 by Oxidiot.".to_owned())
+    // Ok("AARSG: 1.16: I don't care; | 1.17: 6:52:10 by Fudge; | 1.18: 4:22:12 by Leonn; | 1.19: 5:10:06 by Leonn; | 1.20: 6:41:18 by Leonn; | 1.20.5: 5:37 by Feinberg;$AASSG: 1.0-1.6: 24:06 by Schnidi_; | 1.8-1.11: 1:41:09 by Unease; | 1.12: 4:05:07 by MeisterMaki; | 1.13: N/A; | 1.14: N/A; | 1.15: N/A; | 1.16: 1:30:15 by me; (1:22:06 Thunderless by me); | 1.17: 4:06:49 by me; | 1.18: N/A; | 1.19: N/A; | 1.20: 3:58 by me;".to_owned())
+    Ok("https://docs.google.com/spreadsheets/u/0/d/107ijqjELTQQ29KW4phUmtvYFTX9-pfHsjb18TKoWACk/htmlview#".to_owned())
 }
 
 pub fn pb() -> Result<String, String> {
-    Ok("AA RSG: 1.12: 4:38; 1.16: No pb (3:58 thunderless); AA SSG: 1.16: No pb (1:27 thunderless).".to_owned())
+    Ok("AARSG: 1.12: 4:38 | 1.16: No pb (3:58 thunderless); | 1.20.5: 8:14 | AASSG: 1.16: 1:30:15 (1:22:06 thunderless); | 1.17: 4:06:49 | 1.20: 3:58;".to_owned())
 }
 
 pub fn topcommands(sqlite_connection: &Connection) -> Result<String, String> {
@@ -846,4 +847,128 @@ pub fn rollphantoms() -> Result<String, String> {
 
 
     Ok(format!("You got {} phantoms spawn at {}!", spawns, formatted_time))
+}
+
+pub fn rollaassg() -> Result<String, String> {
+    let mut rng: StdRng = SeedableRng::from_entropy();
+
+    // Temple
+    if rng.gen_range(1..=100) <= 10 {
+        match rng.gen_range(1..=100) {
+            1..=10 => {
+                return Ok("Your any% Temple blew up.".to_owned());
+            },
+            11..=30 => {
+                return Ok("You died to a Creeper in your any% Temple.".to_owned());
+            },
+            31..=65 => {
+                return Ok("You died to a Zombie in your any% Temple.".to_owned());
+            },
+            66..=95 => {
+                return Ok("You died to a Skeleton in your any% Temple.".to_owned());
+            },
+            96..=100 => {
+                return Ok("You died to a Witch in your any% Temple.".to_owned());
+
+            },
+            _ => {
+                return Ok("If you see this, something broke.".to_owned());
+            }
+        }
+    }
+
+    // random events
+    if rng.gen_range(1..=100) <= 3 {
+        match rng.gen_range(1..=100) {
+            1..=10 => {
+                return Ok("You mispalced obby when building your first nether portal.".to_owned());
+            },
+            11..=55 => {
+                return Ok("Your run died to slow pre-Nether any% crafting.".to_owned());
+            },
+            56..=100 => {
+                return Ok("You couldn't find your wood after blowing up trees in any%.".to_owned());
+            },
+            _ => {
+                return Ok("If you see this, something broke.".to_owned());
+            }
+        }
+    }
+
+    // nether
+    if rng.gen_range(1..=100) == 1 {
+        match rng.gen_range(1..=100) {
+            1..=10 => {
+                return Ok("You mispalced obby when building your first nether portal.".to_owned());
+            },
+            11..=100 => {
+                return Ok("You accidentally hit one of the Zombiefied Piglins in pre-Bastion any%, so they killed you.".to_owned());
+            },
+            _ => {
+                return Ok("If you see this, something broke.".to_owned());
+            }
+        }
+    }
+
+    // bastion
+    if rng.gen_range(1..=100) <= 75 {
+        match rng.gen_range(1..=100) {
+            1..=5 => {
+                return Ok("You died to Blazes during any% Nether, beacuse you didn't get Fire Resistance from barters.".to_owned());
+            },
+            6..=60 => {
+                return Ok("You didn't get enough Ender Pearls from barters in any% Nether.".to_owned());
+            },
+            61..=100 => {
+                return Ok("You didn't get enough materials for Explosives from barters in any% Nether".to_owned());
+            },
+            _ => {
+                return Ok("If you see this, something broke.".to_owned());
+            }
+        }
+    }
+
+    Ok("Yhh uhh i didn't make this yet.".to_owned())
+}
+
+pub fn route() -> Result<String, String> {
+    Ok("1.20: https://docs.google.com/document/d/1K2axBuCsNOdQ9vA7AYUaxhqgX5zXmWBWN-rBELLjxJM/edit".to_owned())
+}
+
+pub fn rollsilence() -> Result<String, String> {
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let mut rolls: i32 = 0;
+    
+    loop {
+        rolls += 1;
+        if rng.gen_range(1..=1000) <= 12 {
+            break;
+        }
+    }
+
+    Ok(format!("You needed to check only {} chests to get the Silence Trim!", rolls).to_owned())
+}
+
+pub fn hdwghfix() -> Result<String, String> {
+    Ok("Mojang added six new effects in the 24w13a snapshot, but they are currently not required for HDWGH, so i made a Data Pack that adds these new effects to HDWGH. Link: https://github.com/Oskar-Dev/24w13a_hdwgh_fix".to_owned())
+}
+
+pub fn caamel() -> Result<String, String> {
+    Ok("chilling cAAmel - Cross-Platform (In the future), high performance AA Tracker made by me in C with SDL2! You can check out my bad code here: https://github.com/Oskar-Dev/kAAmel chilling".to_owned())
+}
+
+pub fn rollheavycore() -> Result<String, String> {
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let mut rolls: i32 = 0;
+    
+    loop {
+        rolls += 1;
+        if rng.gen_range(1..=1000) <= 75 {
+            break;
+        }
+    }
+
+    let only: &str = if rng.gen_range(1..=2) == 1 { " only" } else { "" };
+
+    Ok(format!("You needed to open{} {} Ominous Vaults to get the Heavy Core!", only, rolls).to_owned())
 }
