@@ -972,3 +972,7 @@ pub fn rollheavycore() -> Result<String, String> {
 
     Ok(format!("You needed to open{} {} Ominous Vaults to get the Heavy Core!", only, rolls).to_owned())
 }
+
+pub fn seed() -> Result<String, String> {
+    Ok("2306408978509825121 - Found by me (PacManMVC gave a 10 million seeds with a close city in the outer end which was my starting point, i will work on finding a better seed eventually).".to_owned())
+}

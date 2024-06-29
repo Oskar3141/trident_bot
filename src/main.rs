@@ -1,3 +1,4 @@
+use commands::commands;
 use twitch_irc::login::StaticLoginCredentials;
 use twitch_irc::TwitchIRCClient;
 use twitch_irc::message::{ServerMessage, UserNoticeEvent};
@@ -250,7 +251,7 @@ pub async fn main() {
                                 "!rolldrowned" => {
                                     Some(commands::rolldrowned(args))
                                 },
-                                "Fishinge" => {
+                                "fishinge" => {
                                     Some(commands::fishinge())
                                 },
                                 "!song" => {
@@ -329,6 +330,9 @@ pub async fn main() {
                                 "!rollheavycore" => {
                                     Some(commands::rollheavycore())
                                 },
+                                "!seed" => {
+                                    Some(commands::seed())
+                                }
                                 _ => { None }
                             }
                         } else {
