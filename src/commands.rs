@@ -974,5 +974,9 @@ pub fn rollheavycore() -> Result<String, String> {
 }
 
 pub fn seed() -> Result<String, String> {
-    Ok("2306408978509825121 - Found by me (PacManMVC gave a 10 million seeds with a close city in the outer end which was my starting point, i will work on finding a better seed eventually).".to_owned())
+    Ok("-1850838705525738103 - Found by me.".to_owned())
+}
+
+pub fn lootingseedroute() -> Result<String, String> {
+    Ok("https://docs.google.com/document/d/1TkCVcu2HO5iMjSyN8F_9S3RpvTLVZR6hKLyEkPY9sLk/edit?usp=sharing".to_owned())
 }

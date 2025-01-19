@@ -333,6 +333,9 @@ pub async fn main() {
                                 "!seed" => {
                                     Some(commands::seed())
                                 }
+                                "!lootingseedroute" => {
+                                    Some(commands::lootingseedroute())
+                                }
                                 _ => { None }
                             }
                         } else {
